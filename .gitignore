@@ -1,0 +1,15 @@
+# Este repositorio es PÚBLICO (GitHub Pages): solo la parte visual de la app.
+
+# Datos de flota y archivos de trabajo (tarjetas, TAG, placas, gastos)
+*.xlsx
+*.xls
+*.csv
+
+# Código de Apps Script (vive en el editor de Apps Script)
+*.gs
+*.gs.js
+
+# Entregas y respaldos
+*.zip
+entrega*/
+respaldos/
