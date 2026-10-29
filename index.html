@@ -91,9 +91,67 @@ td.sin{padding:28px 8px;text-align:center;color:var(--muted);}
   .flota{padding-bottom:76px;}
   .flota h2{font-size:20px;}
 }
+/* Etiquetas y acciones */
+.badge{margin-left:auto;background:var(--bad);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;}
+.badge:empty{display:none;}
+.btn-sec{background:var(--card);color:var(--azul);border-color:var(--line);}
+.btn-mini{padding:4px 10px;font-size:12.5px;}
+.card-tit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.card-tit h2{margin-right:auto;}
+td.n,th.n{text-align:right;}
+td:first-child,td.n{white-space:nowrap;}
+.ajustada{color:var(--bad);font-weight:700;cursor:help;}
+.chip{display:inline-block;font-size:11.5px;border-radius:10px;padding:1px 8px;background:var(--gris-bg);color:var(--muted);}
+.chip.si{background:var(--teal-bg);color:var(--teal);}
+.nota{font-size:12.5px;color:var(--muted);margin-bottom:10px;}
+.nota.alerta-txt{color:var(--bad);}
+.lectura .solo-edicion{display:none !important;}
+#diario{width:100%;height:auto;display:block;}
+#diario text{font-size:13px;fill:var(--muted);}
+.barras{display:flex;flex-direction:column;gap:7px;}
+.fila{display:grid;grid-template-columns:130px minmax(0,1fr) 78px;gap:8px;align-items:center;font-size:12.5px;}
+.fila .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fila .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+.pista{height:10px;background:var(--gris-bg);border-radius:5px;overflow:hidden;}
+.pista b{display:block;height:100%;background:linear-gradient(90deg,var(--azul),var(--teal));border-radius:5px;}
+.placa{display:inline-flex;flex-direction:column;align-items:center;min-width:104px;border:1.5px solid #8C99A8;border-radius:5px;background:#fff;overflow:hidden;line-height:1;}
+.placa::before{content:"METELMEX";width:100%;text-align:center;font-size:7px;letter-spacing:.2em;color:#fff;background:var(--azul);padding:2px 0;}
+.placa b{font-size:12px;letter-spacing:.06em;padding:3px 6px 4px;font-family:Consolas,"Courier New",monospace;}
+.placa.sin{border-style:dashed;}
+.placa.sin::before{background:var(--gris);content:"POR ASIGNAR";}
+.alertas{display:flex;flex-direction:column;gap:8px;}
+.alerta{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:8px;background:var(--bg);border-left:4px solid var(--c);text-decoration:none;color:inherit;}
+.alerta .ico{color:var(--c);width:22px;height:22px;}
+.alerta strong{font-size:18px;min-width:30px;color:var(--c);text-align:right;}
+.alerta div{font-size:12.5px;flex:1;}
+.alerta div b{display:block;font-size:13px;color:var(--ink);}
+/* Ventana para formularios y confirmaciones */
+dialog{margin:auto;border:none;border-radius:14px;padding:0;width:min(440px,calc(100% - 32px));box-shadow:0 20px 50px -10px rgba(0,0,0,.4);}
+dialog::backdrop{background:rgba(14,26,40,.5);}
+dialog form{padding:20px;display:flex;flex-direction:column;gap:12px;max-height:85vh;overflow:auto;}
+dialog h3{font-size:17px;}
+.campo{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted);}
+.campo input,.campo select,.campo textarea{font:inherit;font-weight:400;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;}
+.campo input[readonly]{background:var(--gris-bg);}
+.acciones{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.resumen{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13.5px;}
+.resumen b{text-align:right;font-variant-numeric:tabular-nums;}
+.aviso-dlg{font-size:13px;color:var(--muted);}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:50;max-width:calc(100% - 32px);}
+.toast[hidden]{display:none;}
+/* Inicio de sesión */
+.login{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(135deg,var(--azul-osc),var(--azul) 55%,var(--teal));}
+body:not(.sin-sesion) .login{display:none;}
+body.sin-sesion > aside, body.sin-sesion > main{display:none;}
+.login-card{width:min(380px,100%);background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 20px 50px -10px rgba(0,0,0,.45);}
+.login-card form{padding:22px 24px 24px;display:flex;flex-direction:column;gap:12px;}
+.login-card .logo-mmx{height:70px;background-size:auto 80%;margin-top:6px;}
+.login-card h1{font-size:13px;letter-spacing:.24em;text-align:center;color:var(--azul);}
+.login-error{color:var(--bad);font-size:13px;min-height:1em;}
+[hidden]{display:none !important;}
 </style>
 </head>
-<body>
+<body class="sin-sesion">
 
 <!-- Íconos reutilizables -->
 <svg width="0" height="0" style="position:absolute">
@@ -107,7 +165,33 @@ td.sin{padding:28px 8px;text-align:center;color:var(--muted);}
   <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
   <symbol id="i-grafica" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
   <symbol id="i-bajar" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-mano" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v6M12 10V4a1.5 1.5 0 0 1 3 0v7M15 10V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-2-4a1.5 1.5 0 0 1 2.6-1.5L9 14"/></symbol>
+  <symbol id="i-tarjeta" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-lapiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></symbol>
+  <symbol id="i-salir" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
 </svg>
+
+<div class="login">
+  <div class="login-card">
+    <div class="franja"><i></i><i></i><i></i></div>
+    <form id="login-form">
+      <div class="logo-mmx" role="img" aria-label="Metelmex"></div>
+      <h1>CONTROL VEHICULAR</h1>
+      <div id="login-paso1">
+        <label class="campo">Usuario<input id="login-usuario" autocomplete="username" autocapitalize="none" required></label>
+        <label class="campo" style="margin-top:10px">Contraseña<input id="login-clave" type="password" autocomplete="current-password" required></label>
+      </div>
+      <div id="login-paso2" hidden>
+        <p class="aviso-dlg">Es tu primer ingreso: define tu propia contraseña (mínimo 8 caracteres).</p>
+        <label class="campo">Contraseña nueva<input id="login-nueva" type="password" autocomplete="new-password"></label>
+        <label class="campo" style="margin-top:10px">Repite la contraseña<input id="login-nueva2" type="password" autocomplete="new-password"></label>
+      </div>
+      <div id="login-error" class="login-error" role="alert"></div>
+      <button class="btn" id="login-btn" type="submit" style="justify-content:center">Entrar</button>
+    </form>
+  </div>
+</div>
 
 <aside class="menu">
   <div class="marca"><div class="logo-mmx" role="img" aria-label="Metelmex"></div><span>CONTROL VEHICULAR</span></div>
@@ -116,26 +200,28 @@ td.sin{padding:28px 8px;text-align:center;color:var(--muted);}
     <a href="#panel"><svg class="ico"><use href="#i-panel"/></svg>Panel</a>
     <a href="#unidades"><svg class="ico"><use href="#i-auto"/></svg>Unidades</a>
     <a href="#combustible"><svg class="ico"><use href="#i-gas"/></svg>Combustible</a>
+    <a href="#por-asignar"><svg class="ico"><use href="#i-mano"/></svg>Por asignar<span class="badge" id="badge-asignar"></span></a>
     <a href="#casetas"><svg class="ico"><use href="#i-caseta"/></svg>Casetas</a>
     <a href="#prorrateo"><svg class="ico"><use href="#i-pastel"/></svg>Prorrateo</a>
   </nav>
-  <div class="pie">Versión cascarón · sin datos</div>
+  <div class="pie"><span id="usuario-nombre"></span><br><a href="#" id="salir" style="color:#fff">Cerrar sesión</a></div>
 </aside>
 
 <main>
   <div class="barra">
     <h1 id="titulo">Panel<small id="subtitulo"></small></h1>
-    <select aria-label="Mes"><option>Mes</option></select>
-    <select aria-label="Centro de costo"><option>Todos los centros de costo</option></select>
-    <button class="btn" disabled title="Pendiente: formato de carga"><svg class="ico"><use href="#i-subir"/></svg>Subir Excel</button>
+    <select id="f-mes" aria-label="Mes"></select>
+    <select id="f-centro" aria-label="Centro de costo"></select>
+    <button class="btn solo-edicion" id="btn-subir"><svg class="ico"><use href="#i-subir"/></svg>Subir Excel TOKA</button>
+    <input type="file" id="archivo" accept=".xlsx,.xls" hidden>
   </div>
 
   <!-- PANEL -->
   <section id="panel" data-sub="Gasto de flota">
     <div class="flota">
       <p>Flota Metelmex</p>
-      <h2>Sin datos cargados</h2>
-      <div class="chips"><span>— unidades con combustible</span><span>— unidades con casetas</span><span>— centros de costo</span></div>
+      <h2 id="p-titulo">Sin datos cargados</h2>
+      <div class="chips" id="p-chips"></div>
       <svg class="camion" viewBox="0 0 150 62" aria-hidden="true">
         <rect x="2" y="6" width="92" height="40" rx="3" fill="#fff"/>
         <rect x="8" y="12" width="80" height="6" rx="1" fill="var(--azul)"/><rect x="8" y="21" width="56" height="6" rx="1" fill="var(--gris)"/><rect x="8" y="30" width="68" height="6" rx="1" fill="var(--teal)"/>
@@ -147,83 +233,511 @@ td.sin{padding:28px 8px;text-align:center;color:var(--muted);}
     </div>
 
     <div class="kpis">
-      <div class="kpi" style="--c:var(--azul);--bg:var(--azul-bg)"><div class="circ"><svg class="ico"><use href="#i-cartera"/></svg></div><div><p>Gasto total</p><strong>—</strong><span>Combustible + casetas</span></div></div>
-      <div class="kpi" style="--c:var(--azul);--bg:var(--azul-bg)"><div class="circ"><svg class="ico"><use href="#i-gas"/></svg></div><div><p>Combustible</p><strong>—</strong><span>Cargas · unidades</span></div></div>
-      <div class="kpi" style="--c:var(--teal);--bg:var(--teal-bg)"><div class="circ"><svg class="ico"><use href="#i-caseta"/></svg></div><div><p>Casetas</p><strong>—</strong><span>Cruces · unidades</span></div></div>
-      <div class="kpi" style="--c:var(--bad);--bg:var(--bad-bg)"><div class="circ"><svg class="ico"><use href="#i-alerta"/></svg></div><div><p>Alertas</p><strong>—</strong><span>Casos por revisar</span></div></div>
+      <div class="kpi" style="--c:var(--azul);--bg:var(--azul-bg)"><div class="circ"><svg class="ico"><use href="#i-gas"/></svg></div><div><p>Combustible</p><strong id="k-comb">—</strong><span id="k-comb-sub">Cargas</span></div></div>
+      <div class="kpi" style="--c:var(--azul);--bg:var(--azul-bg)"><div class="circ"><svg class="ico"><use href="#i-cartera"/></svg></div><div><p>Promedio por unidad</p><strong id="k-prom">—</strong><span id="k-prom-sub">Unidades</span></div></div>
+      <div class="kpi" style="--c:var(--teal);--bg:var(--teal-bg)"><div class="circ"><svg class="ico"><use href="#i-caseta"/></svg></div><div><p>Casetas</p><strong>—</strong><span>Pendiente: formato de carga</span></div></div>
+      <div class="kpi" style="--c:var(--bad);--bg:var(--bad-bg)"><div class="circ"><svg class="ico"><use href="#i-alerta"/></svg></div><div><p>Alertas</p><strong id="k-alertas">—</strong><span>Casos por revisar</span></div></div>
     </div>
 
     <div class="rejilla">
-      <div class="card"><h2>Gasto por día</h2><p class="sub">Combustible y casetas apilados</p>
-        <div class="vacio"><svg class="ico"><use href="#i-grafica"/></svg>La gráfica aparece al cargar información</div></div>
-      <div class="card"><h2>Alertas</h2><p class="sub">Casos detectados al cargar los archivos</p>
-        <div class="vacio"><svg class="ico"><use href="#i-alerta"/></svg>Sin alertas por ahora</div></div>
+      <div class="card"><h2>Gasto por día</h2><p class="sub">Combustible del mes</p><div id="p-diario"></div></div>
+      <div class="card"><h2>Alertas</h2><p class="sub">Casos del mes seleccionado</p><div class="alertas" id="p-alertas"></div></div>
     </div>
     <div class="rejilla mt">
-      <div class="card"><h2>Top 10 unidades · combustible</h2><p class="sub">Ordenado por gasto del mes</p>
-        <div class="vacio"><svg class="ico"><use href="#i-auto"/></svg>Sin unidades con gasto</div></div>
-      <div class="card"><h2>Por centro de costo</h2><p class="sub">Combustible · base del prorrateo</p>
-        <div class="vacio"><svg class="ico"><use href="#i-pastel"/></svg>Sin centros de costo</div></div>
+      <div class="card"><h2>Top 10 unidades · combustible</h2><p class="sub">Ordenado por gasto del mes</p><div id="p-top"></div></div>
+      <div class="card"><h2>Por centro de costo</h2><p class="sub">Combustible · base del prorrateo</p><div id="p-cc"></div></div>
     </div>
   </section>
 
   <!-- UNIDADES -->
   <section id="unidades" data-sub="Catálogo de la flota" hidden>
     <div class="card">
-      <div class="filtros"><input type="search" placeholder="Buscar unidad, placa o responsable" aria-label="Buscar"></div>
-      <div class="tabla"><table>
-        <thead><tr><th>No. económico</th><th>Placa</th><th>Tipo</th><th>Centro de costo</th><th>Tarjeta</th><th>TAG</th><th>Responsable</th><th>Estatus</th></tr></thead>
-        <tbody><tr><td class="sin" colspan="8">Sin unidades registradas</td></tr></tbody>
-      </table></div>
+      <div class="card-tit"><h2>Unidades</h2><input type="search" id="b-unidades" placeholder="Buscar unidad, placa o responsable" aria-label="Buscar unidad"><button class="btn btn-mini solo-edicion" id="nueva-unidad">Agregar unidad</button></div>
+      <div class="tabla" id="t-unidades"></div>
+    </div>
+    <div class="card mt">
+      <div class="card-tit"><h2>Tarjetas TOKA</h2></div>
+      <p class="nota">Las tarjetas se agregan solas al subir el Excel. Asigna cada una a su unidad; si se usa para varias unidades, márcala como comodín y sus cargas se asignan una por una en "Por asignar".</p>
+      <div class="tabla" id="t-tarjetas"></div>
+    </div>
+    <div class="card mt">
+      <div class="card-tit"><h2>Centros de costo</h2><button class="btn btn-mini solo-edicion" id="nuevo-centro">Agregar centro</button></div>
+      <div class="tabla" id="t-centros"></div>
     </div>
   </section>
 
   <!-- COMBUSTIBLE -->
-  <section id="combustible" data-sub="Cargas con tarjeta" hidden>
+  <section id="combustible" data-sub="Cargas con tarjeta TOKA" hidden>
     <div class="card">
-      <div class="filtros"><input type="search" placeholder="Buscar unidad, estación o ciudad" aria-label="Buscar"></div>
-      <div class="tabla"><table>
-        <thead><tr><th>Fecha</th><th>Unidad</th><th>Tarjeta</th><th>Estación</th><th>Ciudad</th><th>Centro de costo</th><th>Importe</th></tr></thead>
-        <tbody><tr><td class="sin" colspan="7">Sin cargas registradas</td></tr></tbody>
-      </table></div>
+      <div class="card-tit"><input type="search" id="b-cargas" placeholder="Buscar unidad, estación o ciudad" aria-label="Buscar carga"><span class="nota" id="c-total" style="margin:0"></span></div>
+      <div class="tabla" id="t-cargas"></div>
+    </div>
+  </section>
+
+  <!-- POR ASIGNAR -->
+  <section id="por-asignar" data-sub="Cargas de tarjetas comodín o sin unidad" hidden>
+    <div class="card">
+      <p class="nota">Elige la unidad de cada carga; el centro de costo se toma de la unidad. Se muestran todos los meses.</p>
+      <div class="tabla" id="t-asignar"></div>
     </div>
   </section>
 
   <!-- CASETAS -->
   <section id="casetas" data-sub="Cruces con TAG" hidden>
     <div class="card">
-      <div class="filtros"><input type="search" placeholder="Buscar unidad o caseta" aria-label="Buscar"></div>
-      <div class="tabla"><table>
-        <thead><tr><th>Fecha</th><th>Hora</th><th>Unidad</th><th>TAG</th><th>Caseta</th><th>Centro de costo</th><th>Importe</th></tr></thead>
-        <tbody><tr><td class="sin" colspan="7">Sin cruces registrados</td></tr></tbody>
-      </table></div>
+      <div class="vacio"><svg class="ico"><use href="#i-caseta"/></svg>Pendiente: formato de descarga de la plataforma de casetas</div>
     </div>
   </section>
 
   <!-- PRORRATEO -->
   <section id="prorrateo" data-sub="Reparto del gasto por centro de costo" hidden>
     <div class="card">
-      <div class="filtros"><button class="btn" disabled title="Pendiente: formato de carga"><svg class="ico"><use href="#i-bajar"/></svg>Exportar Excel</button></div>
-      <div class="tabla"><table>
-        <thead><tr><th>Centro de costo</th><th>Zona</th><th>Costo</th><th>%</th><th>Costo sin IVA</th><th>IEPS</th><th>Comisión sin IVA</th></tr></thead>
-        <tbody><tr><td class="sin" colspan="7">Sin información para prorratear</td></tr></tbody>
-      </table></div>
+      <p class="nota">Captura las cifras de las facturas del mes. Se reparten según el % de gasto de cada centro de costo (todas las cargas del mes, sin importar el filtro de centro).</p>
+      <div class="filtros">
+        <label class="campo">Costo sin IVA (facturas gasolineras)<input type="number" step="0.01" id="pr-neto"></label>
+        <label class="campo">IEPS<input type="number" step="0.01" id="pr-ieps"></label>
+        <label class="campo">Comisión TOKA sin IVA<input type="number" step="0.01" id="pr-comision"></label>
+      </div>
+      <div class="filtros">
+        <button class="btn solo-edicion" id="pr-guardar">Guardar cifras</button>
+        <button class="btn btn-sec" id="pr-exportar"><svg class="ico"><use href="#i-bajar"/></svg>Exportar Excel</button>
+      </div>
+      <p class="nota alerta-txt" id="pr-aviso"></p>
+      <div class="tabla" id="t-prorrateo"></div>
     </div>
   </section>
 </main>
 
+<dialog id="dlg"><form method="dialog" id="dlg-form"></form></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script src="xlsx.full.min.js"></script>
+<script src="logica.js"></script>
 <script>
-// Navegación por secciones con el ancla de la URL (#panel, #unidades, ...)
+// Dirección /exec del Apps Script (ver apps-script/Codigo.gs). Vacía = sin configurar.
+const SCRIPT_URL = '';
+const CLAVE_SESION = 'cv_sesion';
+let SESION = null, DATOS = { unidades: [], tarjetas: [], centros: [], cargas: [], prorrateo: [] };
+let U = {}, T = {}, C = {}; // unidades, tarjetas y centros por su clave
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pesos = n => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pesos0 = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-MX');
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const nombreMes = m => m ? MESES[+m.slice(5, 7) - 1].replace(/^./, l => l.toUpperCase()) + ' ' + m.slice(0, 4) : '';
+const nombreCentro = z => z ? (C[z] ? C[z].nombre : 'Zona ' + z) : 'Sin asignar';
+const ultimos4 = t => '••' + String(t).slice(-4);
+const vacio = (txt, ico = 'i-grafica') => `<div class="vacio"><svg class="ico"><use href="#${ico}"/></svg>${esc(txt)}</div>`;
+
+function aviso(txt) {
+  const t = $('toast');
+  t.textContent = txt; t.hidden = false;
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => t.hidden = true, 4500);
+}
+
+/* ---------- Conexión ---------- */
+async function api(payload) {
+  if (!/^https:\/\/script\.google\.com\//.test(SCRIPT_URL)) throw new Error('Falta configurar la dirección del Apps Script (SCRIPT_URL) en index.html.');
+  const r = await fetch(SCRIPT_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...payload, token: SESION ? SESION.token : '' })
+  });
+  if (!r.ok) throw new Error('No se pudo conectar (' + r.status + ').');
+  const data = await r.json();
+  if (data.error === 'SESION_INVALIDA') { cerrarSesion('Tu sesión terminó. Vuelve a iniciar sesión.'); throw new Error('Sesión vencida'); }
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function cargarDatos() {
+  try {
+    const d = await api({ action: 'datos' });
+    d.cargas.forEach(c => { c.importe = Number(c.importe) || 0; c.importeToka = Number(c.importeToka) || 0; });
+    DATOS = d;
+    U = Object.fromEntries(d.unidades.map(x => [x.noEconomico, x]));
+    T = Object.fromEntries(d.tarjetas.map(x => [x.tarjeta, x]));
+    C = Object.fromEntries(d.centros.map(x => [x.zona, x]));
+    render();
+  } catch (e) { aviso(e.message); }
+}
+
+/* ---------- Sesión ---------- */
+let claveTemporal = '';
+$('login-form').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const err = $('login-error'), btn = $('login-btn'), usuario = $('login-usuario').value.trim().toLowerCase();
+  err.textContent = ''; btn.disabled = true;
+  try {
+    let r;
+    if (claveTemporal) {
+      if ($('login-nueva').value !== $('login-nueva2').value) throw new Error('Las contraseñas no coinciden.');
+      r = await api({ action: 'definirClave', usuario, claveTemporal, nueva: $('login-nueva').value });
+    } else {
+      r = await api({ action: 'login', usuario, clave: $('login-clave').value });
+      if (r.cambiarClave) {
+        claveTemporal = $('login-clave').value;
+        $('login-paso1').hidden = true; $('login-paso2').hidden = false; $('login-nueva').focus();
+        btn.textContent = 'Guardar contraseña y entrar';
+        return;
+      }
+    }
+    SESION = { token: r.token, nombre: r.nombre, rol: r.rol, expira: r.expira };
+    try { localStorage.setItem(CLAVE_SESION, JSON.stringify(SESION)); } catch (e) {}
+    entrar();
+  } catch (e) { err.textContent = e.message; }
+  finally { btn.disabled = false; }
+});
+
+function entrar() {
+  document.body.classList.remove('sin-sesion');
+  document.body.classList.toggle('lectura', SESION.rol !== 'edicion');
+  $('usuario-nombre').textContent = SESION.nombre + (SESION.rol === 'edicion' ? '' : ' · solo lectura');
+  cargarDatos();
+}
+
+function cerrarSesion(msg) {
+  SESION = null;
+  try { localStorage.removeItem(CLAVE_SESION); } catch (e) {}
+  document.body.classList.add('sin-sesion');
+  $('login-error').textContent = msg || '';
+}
+$('salir').addEventListener('click', ev => {
+  ev.preventDefault();
+  api({ action: 'logout' }).catch(() => {});
+  cerrarSesion();
+});
+
+/* ---------- Ventana de formulario ----------
+   campos: [{k, etiqueta, tipo: 'text'|'number'|'select'|'textarea', opciones: [[valor, texto]], soloLectura, requerido}]
+   Devuelve los valores capturados, o null si se cancela. */
+function formulario(titulo, campos, valores = {}, intro = '', textoBoton = 'Guardar') {
+  const f = $('dlg-form');
+  f.innerHTML = `<h3>${esc(titulo)}</h3>${intro}` + campos.map(c => {
+    const v = esc(valores[c.k] ?? '');
+    const attrs = `name="${c.k}" ${c.requerido ? 'required' : ''} ${c.soloLectura ? 'readonly' : ''}`;
+    const input = c.tipo === 'select'
+      ? `<select ${attrs}>${c.opciones.map(([val, txt]) => `<option value="${esc(val)}" ${String(val) === String(valores[c.k] ?? '') ? 'selected' : ''}>${esc(txt)}</option>`).join('')}</select>`
+      : c.tipo === 'textarea' ? `<textarea rows="3" ${attrs}>${v}</textarea>`
+      : `<input type="${c.tipo || 'text'}" ${c.tipo === 'number' ? 'step="0.01" min="0"' : ''} value="${v}" ${attrs}>`;
+    return `<label class="campo">${esc(c.etiqueta)}${input}</label>`;
+  }).join('') + `<div class="acciones"><button class="btn btn-sec" value="no" formnovalidate>Cancelar</button><button class="btn" value="si">${esc(textoBoton)}</button></div>`;
+  const dlg = $('dlg');
+  dlg.returnValue = '';
+  dlg.showModal();
+  return new Promise(res => dlg.addEventListener('close', () => {
+    if (dlg.returnValue !== 'si') return res(null);
+    res(Object.fromEntries(campos.map(c => [c.k, f.elements[c.k].value.trim()])));
+  }, { once: true }));
+}
+
+/* ---------- Subir Excel de TOKA ---------- */
+$('btn-subir').addEventListener('click', () => $('archivo').click());
+$('archivo').addEventListener('change', async ev => {
+  const archivo = ev.target.files[0];
+  ev.target.value = '';
+  if (!archivo) return;
+  try {
+    const wb = XLSX.read(await archivo.arrayBuffer(), { cellDates: true });
+    const r = leerToka(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' }));
+    if (r.error) return aviso(r.error);
+    const ya = new Set(DATOS.cargas.map(c => c.id));
+    const nuevas = r.cargas.filter(c => !ya.has(c.id)).map(c => ({ ...c, ...asignarPorCatalogo(c, T, U) }));
+    const tarjetasNuevas = [...new Map(nuevas.filter(c => !T[c.tarjeta]).map(c => [c.tarjeta, { tarjeta: c.tarjeta, nombreToka: c.nombreToka }])).values()];
+    const fechas = r.cargas.map(c => c.fecha).sort();
+    const fila = (t, v) => `<span>${t}</span><b>${v}</b>`;
+    const ok = await formulario('Subir Reporte Consumos', [], {},
+      `<p class="aviso-dlg">${esc(archivo.name)}<br>Del ${fechas[0] || '—'} al ${fechas[fechas.length - 1] || '—'}</p><div class="resumen">` +
+      fila('Cargas nuevas', nuevas.length) + fila('Importe nuevo', pesos(nuevas.reduce((s, c) => s + c.importeToka, 0))) +
+      fila('Ya estaban guardadas (no se duplican)', r.cargas.length - nuevas.length) +
+      fila('Quedarán por asignar', nuevas.filter(c => !c.unidad).length) + fila('Tarjetas nuevas', tarjetasNuevas.length) +
+      fila('Abonos y retiros ignorados', r.ignoradas.abonos + r.ignoradas.decrementos + r.ignoradas.otros) + '</div>',
+      'Guardar');
+    if (!ok) return;
+    if (!nuevas.length) return aviso('No hay cargas nuevas en este archivo.');
+    const res = await api({ action: 'subirCargas', cargas: nuevas, tarjetasNuevas });
+    aviso(`Se guardaron ${res.nuevas} cargas` + (res.tarjetasNuevas ? ` y ${res.tarjetasNuevas} tarjetas nuevas.` : '.'));
+    cargarDatos();
+  } catch (e) { aviso('No se pudo leer o guardar el archivo: ' + e.message); }
+});
+
+/* ---------- Filtros ---------- */
+function cargasDelMes(conCentro = true) {
+  const mes = $('f-mes').value, cc = $('f-centro').value;
+  return DATOS.cargas.filter(c => c.mes === mes && (!conCentro || !cc || c.centroCosto === cc));
+}
+$('f-mes').addEventListener('change', render);
+$('f-centro').addEventListener('change', render);
+$('b-cargas').addEventListener('input', renderCombustible);
+$('b-unidades').addEventListener('input', renderUnidades);
+
+function llenarFiltros() {
+  const mes = $('f-mes').value, cc = $('f-centro').value;
+  const meses = [...new Set(DATOS.cargas.map(c => c.mes))].sort().reverse();
+  $('f-mes').innerHTML = meses.length ? meses.map(m => `<option value="${m}">${esc(nombreMes(m))}</option>`).join('') : '<option value="">Sin datos</option>';
+  // Sin mes elegido, se abre el de más cargas (el reporte trae días sueltos del mes anterior y siguiente).
+  const cuenta = m => DATOS.cargas.filter(c => c.mes === m).length;
+  if (meses.length) $('f-mes').value = meses.includes(mes) ? mes : meses.reduce((a, b) => cuenta(b) > cuenta(a) ? b : a);
+  $('f-centro').innerHTML = '<option value="">Todos los centros de costo</option>' +
+    DATOS.centros.map(c => `<option value="${esc(c.zona)}">${esc(c.nombre)}</option>`).join('');
+  $('f-centro').value = C[cc] ? cc : '';
+}
+
+function render() {
+  llenarFiltros();
+  const pendientes = DATOS.cargas.filter(c => !c.unidad).length;
+  $('badge-asignar').textContent = pendientes || '';
+  renderPanel(); renderUnidades(); renderCombustible(); renderAsignar(); renderProrrateo();
+}
+
+/* ---------- Panel ---------- */
+function renderPanel() {
+  const cs = cargasDelMes(), mes = $('f-mes').value;
+  const total = cs.reduce((s, c) => s + c.importe, 0);
+  const unidades = new Set(cs.map(c => c.unidad || c.tarjeta));
+  const centros = new Set(cs.map(c => c.centroCosto).filter(Boolean));
+  const al = alertas(cs, T);
+  $('p-titulo').textContent = cs.length ? `${pesos0(total)} en combustible · ${nombreMes(mes)}` : 'Sin datos cargados';
+  $('p-chips').innerHTML = cs.length ? [`${cs.length} cargas`, `${unidades.size} unidades`, `${centros.size} centros de costo`].map(t => `<span>${t}</span>`).join('') : '';
+  $('k-comb').textContent = cs.length ? pesos0(total) : '—';
+  $('k-comb-sub').textContent = `${cs.length} cargas`;
+  $('k-prom').textContent = unidades.size ? pesos0(total / unidades.size) : '—';
+  $('k-prom-sub').textContent = `${unidades.size} unidades`;
+  $('k-alertas').textContent = cs.length ? al.tarjetaVariasUnidades + al.mismoDia + al.porAsignar + al.ajustadas : '—';
+
+  if (!cs.length) {
+    $('p-diario').innerHTML = vacio('La gráfica aparece al cargar información');
+    $('p-alertas').innerHTML = vacio('Sin alertas por ahora', 'i-alerta');
+    $('p-top').innerHTML = vacio('Sin unidades con gasto', 'i-auto');
+    $('p-cc').innerHTML = vacio('Sin centros de costo', 'i-pastel');
+    return;
+  }
+
+  // Barras por día del mes
+  const dias = new Date(+mes.slice(0, 4), +mes.slice(5, 7), 0).getDate(), porDia = {};
+  cs.forEach(c => { const d = +c.fecha.slice(8, 10); porDia[d] = (porDia[d] || 0) + c.importe; });
+  const max = Math.max(...Object.values(porDia)) * 1.1, W = 620, H = 200, bw = W / dias;
+  let svg = '';
+  [0.25, 0.5, 0.75, 1].forEach(f => { const y = H - f * (H - 10);
+    svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#EEF1F4"/><text x="2" y="${y - 3}">${pesos0(max * f)}</text>`; });
+  for (let d = 1; d <= dias; d++) {
+    const v = porDia[d] || 0, h = v / max * (H - 10), x = (d - 1) * bw + 2;
+    svg += `<rect x="${x}" y="${H - h}" width="${Math.max(bw - 4, 2)}" height="${h}" fill="var(--azul)" rx="2"><title>${d} ${MESES[+mes.slice(5, 7) - 1]} · ${pesos(v)}</title></rect>`;
+    if (d === 1 || d % 5 === 0) svg += `<text x="${x + bw / 2 - 2}" y="${H + 16}" text-anchor="middle">${d}</text>`;
+  }
+  $('p-diario').innerHTML = `<svg id="diario" viewBox="0 0 ${W} 220" role="img" aria-label="Gasto diario de combustible">${svg}</svg>`;
+
+  const tarjetaAl = (n, c, bg, ico, t, d, href) => `<a class="alerta" href="${href}" style="--c:${c};--bg:${bg}"><svg class="ico"><use href="#${ico}"/></svg><div><b>${t}</b>${d}</div><strong>${n}</strong></a>`;
+  $('p-alertas').innerHTML =
+    tarjetaAl(al.porAsignar, 'var(--bad)', 'var(--bad-bg)', 'i-mano', 'Cargas por asignar', 'Sin unidad ni centro de costo.', '#por-asignar') +
+    tarjetaAl(al.tarjetaVariasUnidades, 'var(--bad)', 'var(--bad-bg)', 'i-tarjeta', 'Tarjeta usada en varias unidades', 'Tarjetas fijas (no comodín) con más de una unidad.', '#combustible') +
+    tarjetaAl(al.mismoDia, 'var(--azul)', 'var(--azul-bg)', 'i-reloj', 'Más de una carga el mismo día', 'Misma unidad, mismo día.', '#combustible') +
+    tarjetaAl(al.ajustadas, '#6E7076', 'var(--gris-bg)', 'i-lapiz', 'Cargas ajustadas', 'Importe distinto al de TOKA.', '#combustible');
+
+  const porUnidad = {};
+  cs.forEach(c => { const k = c.unidad || '\u0000' + c.nombreToka; (porUnidad[k] = porUnidad[k] || { n: 0, g: 0 }); porUnidad[k].n++; porUnidad[k].g += c.importe; });
+  const top = Object.entries(porUnidad).sort((a, b) => b[1].g - a[1].g).slice(0, 10);
+  $('p-top').innerHTML = `<table><thead><tr><th>Unidad</th><th class="n">Cargas</th><th class="n">Promedio</th><th class="n">Gasto</th></tr></thead><tbody>` +
+    top.map(([k, v]) => `<tr><td>${placa(k)}</td><td class="n">${v.n}</td><td class="n">${pesos0(v.g / v.n)}</td><td class="n"><b>${pesos0(v.g)}</b></td></tr>`).join('') + '</tbody></table>';
+
+  const porCentro = {};
+  cs.forEach(c => porCentro[c.centroCosto] = (porCentro[c.centroCosto] || 0) + c.importe);
+  const cc = Object.entries(porCentro).sort((a, b) => b[1] - a[1]), maxCc = cc[0][1];
+  $('p-cc').innerHTML = '<div class="barras">' + cc.map(([z, v]) =>
+    `<div class="fila"><span class="t">${esc(nombreCentro(z))}</span><span class="pista"><b style="width:${v / maxCc * 100}%"></b></span><span class="v">${pesos0(v)}</span></div>`).join('') + '</div>';
+}
+
+// Unidad asignada como placa; la que llega con \u0000 es el nombre de la tarjeta de una carga sin asignar.
+function placa(k) {
+  return k.startsWith('\u0000') ? `<span class="placa sin"><b>${esc(k.slice(1) || '—')}</b></span>` : `<span class="placa"><b>${esc(k)}</b></span>`;
+}
+
+/* ---------- Unidades, tarjetas y centros ---------- */
+function opcionesUnidad() { return [['', '— Sin unidad —'], ...DATOS.unidades.filter(u => u.estatus !== 'Baja').map(u => [u.noEconomico, u.noEconomico])]; }
+function opcionesCentro() { return [['', '— Elige —'], ...DATOS.centros.map(c => [c.zona, `${c.nombre} (zona ${c.zona})`])]; }
+const btnEditar = (accion, clave) => `<button class="btn btn-sec btn-mini solo-edicion" data-accion="${accion}" data-clave="${esc(clave)}">Editar</button>`;
+
+function renderUnidades() {
+  const b = $('b-unidades').value.trim().toLowerCase();
+  const us = DATOS.unidades.filter(u => !b || [u.noEconomico, u.placa, u.responsable].join(' ').toLowerCase().includes(b));
+  $('t-unidades').innerHTML = us.length ? `<table><thead><tr><th>No. económico</th><th>Placa</th><th>Tipo</th><th>Centro de costo</th><th>Responsable</th><th>Estatus</th><th></th></tr></thead><tbody>` +
+    us.map(u => `<tr><td>${placa(u.noEconomico)}</td><td>${esc(u.placa)}</td><td>${esc(u.tipo)}</td><td>${esc(nombreCentro(u.centroCosto))}</td><td>${esc(u.responsable)}</td><td><span class="chip ${u.estatus === 'Baja' ? '' : 'si'}">${esc(u.estatus || 'Activa')}</span></td><td>${btnEditar('unidad', u.noEconomico)}</td></tr>`).join('') +
+    '</tbody></table>' : vacio(b ? 'Ninguna unidad coincide' : 'Sin unidades registradas', 'i-auto');
+
+  $('t-tarjetas').innerHTML = DATOS.tarjetas.length ? `<table><thead><tr><th>Tarjeta</th><th>Nombre en TOKA</th><th>Unidad</th><th>Comodín</th><th></th></tr></thead><tbody>` +
+    DATOS.tarjetas.map(t => `<tr><td>${esc(t.tarjeta)}</td><td>${esc(t.nombreToka)}</td><td>${t.unidad ? placa(t.unidad) : (t.comodin === 'SI' ? '—' : '<span class="chip">Sin asignar</span>')}</td><td>${t.comodin === 'SI' ? '<span class="chip si">Sí</span>' : 'No'}</td><td>${btnEditar('tarjeta', t.tarjeta)}</td></tr>`).join('') +
+    '</tbody></table>' : vacio('Se agregan al subir el primer Excel de TOKA', 'i-tarjeta');
+
+  $('t-centros').innerHTML = DATOS.centros.length ? `<table><thead><tr><th>Zona</th><th>Nombre</th><th></th></tr></thead><tbody>` +
+    DATOS.centros.map(c => `<tr><td>${esc(c.zona)}</td><td>${esc(c.nombre)}</td><td>${btnEditar('centro', c.zona)}</td></tr>`).join('') +
+    '</tbody></table>' : vacio('Sin centros de costo', 'i-pastel');
+}
+
+async function guardarCatalogo(tabla, fila) {
+  try { await api({ action: 'guardar', tabla, fila }); aviso('Guardado.'); }
+  catch (e) { aviso(e.message); throw e; }
+}
+
+async function editarUnidad(clave) {
+  const u = U[clave] || { estatus: 'Activa' };
+  const v = await formulario(clave ? 'Editar unidad' : 'Agregar unidad', [
+    { k: 'noEconomico', etiqueta: 'No. económico', requerido: true, soloLectura: !!clave },
+    { k: 'placa', etiqueta: 'Placa' },
+    { k: 'tipo', etiqueta: 'Tipo (auto, pick-up, camión…)' },
+    { k: 'centroCosto', etiqueta: 'Centro de costo', tipo: 'select', opciones: opcionesCentro(), requerido: true },
+    { k: 'responsable', etiqueta: 'Responsable' },
+    { k: 'estatus', etiqueta: 'Estatus', tipo: 'select', opciones: [['Activa', 'Activa'], ['Baja', 'Baja']] }
+  ], u);
+  if (!v) return;
+  v.noEconomico = v.noEconomico.toUpperCase();
+  if (!clave && U[v.noEconomico]) return aviso('Ya existe la unidad ' + v.noEconomico + '.');
+  await guardarCatalogo('Unidades', v);
+  cargarDatos();
+}
+
+async function editarTarjeta(clave) {
+  const t = T[clave];
+  const v = await formulario('Tarjeta ' + clave, [
+    { k: 'nombreToka', etiqueta: 'Nombre en TOKA', soloLectura: true },
+    { k: 'comodin', etiqueta: '¿Es comodín? (se usa en varias unidades)', tipo: 'select', opciones: [['NO', 'No'], ['SI', 'Sí']] },
+    { k: 'unidad', etiqueta: 'Unidad (si no es comodín)', tipo: 'select', opciones: opcionesUnidad() }
+  ], t);
+  if (!v) return;
+  if (v.comodin === 'SI') v.unidad = '';
+  await guardarCatalogo('Tarjetas', { tarjeta: clave, ...v });
+  // Las cargas que esperaban unidad de esta tarjeta se acomodan solas.
+  const u = U[v.unidad];
+  const pend = u ? DATOS.cargas.filter(c => c.tarjeta === clave && !c.unidad) : [];
+  if (pend.length) {
+    await api({ action: 'actualizarCargas', cambios: pend.map(c => ({ id: c.id, campos: { unidad: u.noEconomico, centroCosto: u.centroCosto } })) });
+    aviso(`Guardado. Se asignaron ${pend.length} cargas pendientes a ${u.noEconomico}.`);
+  }
+  cargarDatos();
+}
+
+async function editarCentro(clave) {
+  const v = await formulario(clave ? 'Editar centro de costo' : 'Agregar centro de costo', [
+    { k: 'zona', etiqueta: 'Zona (número en TOKA)', requerido: true, soloLectura: !!clave },
+    { k: 'nombre', etiqueta: 'Nombre', requerido: true }
+  ], C[clave] || {});
+  if (!v) return;
+  await guardarCatalogo('CentrosCosto', v);
+  cargarDatos();
+}
+
+$('nueva-unidad').addEventListener('click', () => editarUnidad(''));
+$('nuevo-centro').addEventListener('click', () => editarCentro(''));
+
+/* ---------- Combustible ---------- */
+function renderCombustible() {
+  const b = $('b-cargas').value.trim().toLowerCase();
+  const cs = cargasDelMes().filter(c => !b || [c.unidad, c.nombreToka, c.estacion, c.ciudad].join(' ').toLowerCase().includes(b))
+    .sort((a, z) => (z.fecha + z.hora).localeCompare(a.fecha + a.hora));
+  $('c-total').textContent = cs.length ? `${cs.length} cargas · ${pesos(cs.reduce((s, c) => s + c.importe, 0))}` : '';
+  $('t-cargas').innerHTML = cs.length ? `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Unidad</th><th>Tarjeta</th><th>Estación</th><th>Ciudad</th><th>Producto</th><th>Centro de costo</th><th class="n">Importe</th><th></th></tr></thead><tbody>` +
+    cs.map(c => `<tr><td>${c.fecha}</td><td>${c.hora || '—'}</td><td>${placa(c.unidad || '\u0000' + c.nombreToka)}</td><td>${ultimos4(c.tarjeta)}</td><td>${esc(c.estacion)}</td><td>${esc(c.ciudad)}</td><td>${esc(c.producto)}</td><td>${esc(nombreCentro(c.centroCosto))}</td>` +
+      `<td class="n">${c.importe !== c.importeToka ? `<span class="ajustada" title="${esc('TOKA: ' + pesos(c.importeToka) + ' · ' + c.notaAjuste)}">${pesos(c.importe)} *</span>` : pesos(c.importe)}</td>` +
+      `<td><button class="btn btn-sec btn-mini solo-edicion" data-accion="ajustar" data-clave="${esc(c.id)}">Ajustar</button></td></tr>`).join('') +
+    '</tbody></table>' : vacio(DATOS.cargas.length ? 'Ninguna carga coincide' : 'Sin cargas registradas', 'i-gas');
+}
+
+async function ajustarCarga(id) {
+  const c = DATOS.cargas.find(x => x.id === id);
+  const v = await formulario('Ajustar carga', [
+    { k: 'importe', etiqueta: 'Importe correcto', tipo: 'number', requerido: true },
+    { k: 'notaAjuste', etiqueta: 'Motivo del ajuste (obligatorio)', tipo: 'textarea', requerido: true }
+  ], c, `<p class="aviso-dlg">${c.fecha} · ${esc(c.estacion)}<br>Importe en TOKA: <b>${pesos(c.importeToka)}</b>. Para quitar el ajuste, vuelve a poner ese importe.</p>`);
+  if (!v) return;
+  try {
+    await api({ action: 'actualizarCargas', cambios: [{ id, campos: { importe: Math.round(Number(v.importe) * 100) / 100, notaAjuste: v.notaAjuste } }] });
+    aviso('Carga ajustada.');
+    cargarDatos();
+  } catch (e) { aviso(e.message); }
+}
+
+/* ---------- Por asignar ---------- */
+function renderAsignar() {
+  const cs = DATOS.cargas.filter(c => !c.unidad).sort((a, z) => a.fecha.localeCompare(z.fecha));
+  const ops = opcionesUnidad().map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  $('t-asignar').innerHTML = cs.length ? `<table><thead><tr><th>Fecha</th><th>Tarjeta</th><th>Nombre en TOKA</th><th>Estación</th><th class="n">Importe</th><th class="solo-edicion">Unidad</th></tr></thead><tbody>` +
+    cs.map(c => `<tr><td>${c.fecha} ${c.hora}</td><td>${ultimos4(c.tarjeta)}</td><td>${esc(c.nombreToka)}</td><td>${esc(c.estacion)}</td><td class="n">${pesos(c.importe)}</td>` +
+      `<td class="solo-edicion"><select data-asignar="${esc(c.id)}" aria-label="Unidad">${ops}</select></td></tr>`).join('') +
+    '</tbody></table>' : vacio('No hay cargas por asignar', 'i-mano');
+}
+
+$('t-asignar').addEventListener('change', async ev => {
+  const sel = ev.target.closest('select[data-asignar]'), u = sel && U[sel.value];
+  if (!u) return;
+  if (!u.centroCosto) return aviso('La unidad ' + u.noEconomico + ' no tiene centro de costo; complétala en Unidades.');
+  sel.disabled = true;
+  try {
+    await api({ action: 'actualizarCargas', cambios: [{ id: sel.dataset.asignar, campos: { unidad: u.noEconomico, centroCosto: u.centroCosto } }] });
+    aviso('Asignada a ' + u.noEconomico + '.');
+    cargarDatos();
+  } catch (e) { sel.disabled = false; aviso(e.message); }
+});
+
+/* ---------- Prorrateo ---------- */
+function filasProrrateo() {
+  const mes = $('f-mes').value, cifras = DATOS.prorrateo.find(p => p.mes === mes) || {};
+  return { mes, cifras, filas: prorratear(cargasDelMes(false), cifras) };
+}
+
+function renderProrrateo() {
+  const { mes, cifras, filas } = filasProrrateo();
+  ['neto', 'ieps', 'comision'].forEach(k => $('pr-' + k).value = cifras[k] || '');
+  const sin = cargasDelMes(false).filter(c => !c.centroCosto).length;
+  $('pr-aviso').textContent = sin ? `${sin} cargas de ${nombreMes(mes)} no tienen centro de costo y salen como "Sin asignar". Asígnalas antes de exportar.` : '';
+  const tot = k => filas.reduce((s, f) => s + f[k], 0);
+  $('t-prorrateo').innerHTML = filas.length ? `<table><thead><tr><th>Centro de costo</th><th>Zona</th><th class="n">Costo</th><th class="n">%</th><th class="n">Costo sin IVA</th><th class="n">IEPS</th><th class="n">Comisión sin IVA</th></tr></thead><tbody>` +
+    filas.map(f => `<tr><td>${esc(nombreCentro(f.centro))}</td><td>${esc(f.centro)}</td><td class="n">${pesos(f.costo)}</td><td class="n">${(f.pct * 100).toFixed(2)}%</td><td class="n">${pesos(f.sinIva)}</td><td class="n">${pesos(f.ieps)}</td><td class="n">${pesos(f.comision)}</td></tr>`).join('') +
+    `<tr><td><b>Total</b></td><td></td><td class="n"><b>${pesos(tot('costo'))}</b></td><td class="n"><b>100%</b></td><td class="n"><b>${pesos(tot('sinIva'))}</b></td><td class="n"><b>${pesos(tot('ieps'))}</b></td><td class="n"><b>${pesos(tot('comision'))}</b></td></tr></tbody></table>`
+    : vacio('Sin información para prorratear', 'i-pastel');
+}
+
+$('pr-guardar').addEventListener('click', async () => {
+  const mes = $('f-mes').value;
+  if (!mes) return aviso('Primero sube cargas de algún mes.');
+  try {
+    await guardarCatalogo('Prorrateo', { mes, neto: $('pr-neto').value, ieps: $('pr-ieps').value, comision: $('pr-comision').value });
+    cargarDatos();
+  } catch (e) {}
+});
+
+$('pr-exportar').addEventListener('click', () => {
+  const { mes, filas } = filasProrrateo();
+  if (!filas.length) return aviso('No hay información para exportar.');
+  const r2 = n => Math.round(n * 100) / 100;
+  const aoa = [['Centro de costo', 'Zona', 'Costo', '%', 'Costo sin IVA', 'IEPS', 'Comisión sin IVA'],
+    ...filas.map(f => [nombreCentro(f.centro), f.centro, r2(f.costo), Math.round(f.pct * 10000) / 10000, r2(f.sinIva), r2(f.ieps), r2(f.comision)])];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'Prorrateo ' + mes);
+  XLSX.writeFile(wb, `prorrateo-combustible-${mes}.xlsx`);
+});
+
+/* ---------- Botones dentro de tablas ---------- */
+document.querySelector('main').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-accion]');
+  if (!b) return;
+  ({ unidad: editarUnidad, tarjeta: editarTarjeta, centro: editarCentro, ajustar: ajustarCarga })[b.dataset.accion](b.dataset.clave);
+});
+
+/* ---------- Navegación por secciones (#panel, #unidades, ...) ---------- */
 function mostrar() {
-  const id = (location.hash.slice(1) || 'panel');
-  const sec = document.getElementById(id) || document.getElementById('panel');
-  document.querySelectorAll('main > section').forEach(s => s.hidden = s !== sec);
-  document.querySelectorAll('.menu nav a').forEach(a => a.classList.toggle('activo', a.hash === '#' + sec.id));
-  document.getElementById('titulo').firstChild.textContent = document.querySelector(`.menu a[href="#${sec.id}"]`).textContent;
-  document.getElementById('subtitulo').textContent = sec.dataset.sub;
+  const sec = document.getElementById(location.hash.slice(1) || 'panel');
+  const actual = sec && sec.parentElement.tagName === 'MAIN' ? sec : $('panel');
+  document.querySelectorAll('main > section').forEach(s => s.hidden = s !== actual);
+  document.querySelectorAll('.menu nav a').forEach(a => a.classList.toggle('activo', a.hash === '#' + actual.id));
+  $('titulo').firstChild.textContent = document.querySelector(`.menu a[href="#${actual.id}"]`).childNodes[1].textContent;
+  $('subtitulo').textContent = actual.dataset.sub;
 }
 addEventListener('hashchange', mostrar);
 mostrar();
+
+try {
+  const s = JSON.parse(localStorage.getItem(CLAVE_SESION));
+  if (s && s.token && s.expira > Date.now()) { SESION = s; entrar(); }
+} catch (e) {}
 </script>
 </body>
 </html>
