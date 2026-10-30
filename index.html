@@ -111,7 +111,7 @@ td:first-child,td.n{white-space:nowrap;}
 .nota.alerta-txt{color:var(--bad);}
 .lectura .solo-edicion{display:none !important;}
 .grafica{width:100%;height:auto;display:block;}
-.grafica text{font-size:13px;fill:var(--muted);}
+.grafica text{font-size:12px;fill:var(--muted);}
 .barras{display:flex;flex-direction:column;gap:7px;}
 .fila{display:grid;grid-template-columns:130px minmax(0,1fr) 78px;gap:8px;align-items:center;font-size:12.5px;}
 .fila .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -515,6 +515,23 @@ function render() {
   renderPanel(); renderAnalisis(); renderUnidades(); renderCombustible(); renderAsignar(); renderProrrateo();
 }
 
+/* ---------- Gráficas ---------- */
+// Se dibujan al ancho real del contenedor para que el texto mida lo mismo en celular y en pantalla grande.
+const anchoGrafica = id => Math.max($(id).clientWidth, 280);
+const kPesos = n => '$' + (n >= 1000 ? +(n / 1000).toFixed(1) + 'k' : Math.round(n));
+
+// Eje vertical con 4 divisiones redondas (1, 2, 2.5 o 5 por potencia de 10) y margen izquierdo para las etiquetas.
+function ejeY(maxValor, W, H) {
+  const crudo = Math.max(maxValor, 1) / 4, p = 10 ** Math.floor(Math.log10(crudo));
+  const paso = [1, 2, 2.5, 5, 10].map(f => f * p).find(s => s >= crudo), tope = paso * 4, M = 50, T = 8;
+  let svg = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = H - i / 4 * (H - T);
+    svg += `<line x1="${M}" x2="${W}" y1="${y}" y2="${y}" stroke="#E6EAEF"/><text x="${M - 6}" y="${y + 4}" text-anchor="end">${kPesos(paso * i)}</text>`;
+  }
+  return { svg, M, alto: v => v / tope * (H - T) };
+}
+
 /* ---------- Panel ---------- */
 function renderPanel() {
   const cs = cargasDelMes(), mes = $('f-mes').value;
@@ -541,16 +558,14 @@ function renderPanel() {
   // Barras por día del mes
   const dias = new Date(+mes.slice(0, 4), +mes.slice(5, 7), 0).getDate(), porDia = {};
   cs.forEach(c => { const d = +c.fecha.slice(8, 10); porDia[d] = (porDia[d] || 0) + c.importe; });
-  const max = Math.max(...Object.values(porDia)) * 1.1, W = 620, H = 200, bw = W / dias;
-  let svg = '';
-  [0.25, 0.5, 0.75, 1].forEach(f => { const y = H - f * (H - 10);
-    svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#EEF1F4"/><text x="2" y="${y - 3}">${pesos0(max * f)}</text>`; });
+  const W = anchoGrafica('p-diario'), H = 200, eje = ejeY(Math.max(...Object.values(porDia)), W, H), bw = (W - eje.M) / dias;
+  let svg = eje.svg;
   for (let d = 1; d <= dias; d++) {
-    const v = porDia[d] || 0, h = v / max * (H - 10), x = (d - 1) * bw + 2;
+    const v = porDia[d] || 0, h = eje.alto(v), x = eje.M + (d - 1) * bw + 2;
     svg += `<rect x="${x}" y="${H - h}" width="${Math.max(bw - 4, 2)}" height="${h}" fill="var(--azul)" rx="2"><title>${d} ${MESES[+mes.slice(5, 7) - 1]} · ${pesos(v)}</title></rect>`;
     if (d === 1 || d % 5 === 0) svg += `<text x="${x + bw / 2 - 2}" y="${H + 16}" text-anchor="middle">${d}</text>`;
   }
-  $('p-diario').innerHTML = `<svg class="grafica" viewBox="0 0 ${W} 220" role="img" aria-label="Gasto diario de combustible">${svg}</svg>`;
+  $('p-diario').innerHTML = `<svg class="grafica" viewBox="0 0 ${W} 222" role="img" aria-label="Gasto diario de combustible">${svg}</svg>`;
 
   const tarjetaAl = (n, c, bg, ico, t, d, href) => `<a class="alerta" href="${href}" style="--c:${c};--bg:${bg}"><svg class="ico"><use href="#${ico}"/></svg><div><b>${t}</b>${d}</div><strong>${n}</strong></a>`;
   $('p-alertas').innerHTML =
@@ -825,22 +840,21 @@ function renderAnalisis() {
     kpi('var(--azul)', 'var(--azul-bg)', 'i-panel', 'Proyección cierre ' + anio, pesos0(an.proyeccion), 'al ritmo de los últimos 3 meses');
 
   // Barras por mes: año anterior (gris) y actual (azul); el mes parcial va tenue.
-  const W = 620, H = 200, gw = W / 12, datos = [];
+  const W = anchoGrafica('a-graf'), H = 200, datos = [];
   for (let n = 1; n <= 12; n++) {
     const m = `${anio}-${String(n).padStart(2, '0')}`, ma = `${anio - 1}-${String(n).padStart(2, '0')}`;
     datos.push({ n, act: valorMes(serie, m, cc), ant: valorMes(serie, ma, cc), parcial: serie.origen[m] === 'estimado' });
   }
-  const max = Math.max(1, ...datos.flatMap(d => [d.act, d.ant])) * 1.1;
-  let svg = '';
-  [0.25, 0.5, 0.75, 1].forEach(f => { const y = H - f * (H - 10); svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#EEF1F4"/><text x="2" y="${y - 3}">${miles(max * f)}</text>`; });
+  const eje = ejeY(Math.max(...datos.flatMap(d => [d.act, d.ant])), W, H), gw = (W - eje.M) / 12;
+  let svg = eje.svg;
   datos.forEach(d => {
-    const x = (d.n - 1) * gw + 6, bw = (gw - 14) / 2, ha = d.ant / max * (H - 10), hb = d.act / max * (H - 10);
+    const x = eje.M + (d.n - 1) * gw + 6, bw = (gw - 14) / 2, ha = eje.alto(d.ant), hb = eje.alto(d.act);
     svg += `<rect x="${x}" y="${H - ha}" width="${bw}" height="${ha}" fill="var(--gris)" rx="2"><title>${mesCorto(d.n)} ${anio - 1}: ${pesos(d.ant)}</title></rect>`;
     svg += `<rect x="${x + bw + 2}" y="${H - hb}" width="${bw}" height="${hb}" fill="var(--azul)" ${d.parcial ? 'opacity=".4"' : ''} rx="2"><title>${mesCorto(d.n)} ${anio}: ${pesos(d.act)}${d.parcial ? ' (parcial)' : ''}</title></rect>`;
     svg += `<text x="${x + bw}" y="${H + 16}" text-anchor="middle">${mesCorto(d.n)}</text>`;
   });
   $('a-graf').innerHTML = `<div class="leyenda"><span><i style="background:var(--gris)"></i>${anio - 1}</span><span><i style="background:var(--azul)"></i>${anio}</span><span><i style="background:var(--azul);opacity:.4"></i>Mes parcial</span></div>` +
-    `<svg class="grafica" viewBox="0 0 ${W} 220" role="img" aria-label="Gasto mensual ${anio} contra ${anio - 1}">${svg}</svg>`;
+    `<svg class="grafica" viewBox="0 0 ${W} 222" role="img" aria-label="Gasto mensual ${anio} contra ${anio - 1}">${svg}</svg>`;
   $('a-graf-sub').textContent = cc ? nombreCentro(cc) : 'Toda la empresa';
 
   const cifra = h => h.tipo === 'Comisión fuera de rango' ? (h.valor * 100).toFixed(2) + '%' : h.valor ? pesos0(h.valor) : '—';
@@ -936,7 +950,10 @@ function mostrar() {
   document.querySelectorAll('.menu nav a').forEach(a => a.classList.toggle('activo', a.hash === '#' + actual.id));
   $('titulo').firstChild.textContent = document.querySelector(`.menu a[href="#${actual.id}"]`).childNodes[1].textContent;
   $('subtitulo').textContent = actual.dataset.sub;
+  // Las gráficas toman el ancho de su sección, que solo existe cuando está visible.
+  if (actual.id === 'panel') renderPanel(); else if (actual.id === 'analisis') renderAnalisis();
 }
+addEventListener('resize', () => { clearTimeout(mostrar.t); mostrar.t = setTimeout(mostrar, 200); });
 addEventListener('hashchange', mostrar);
 mostrar();
 
