@@ -18,6 +18,6 @@ Se sube el "Reporte Consumos" tal como baja de la plataforma. Solo cuentan los m
 ## Archivos
 - `index.html`: pantallas.
 - `logica.js`: lectura del Excel de TOKA y del histórico contable, asignación, prorrateo, alertas y análisis (sin pantalla).
-- `prueba.js`: `node prueba.js "<Reporte Consumos de TOKA>.xlsx" ["<Analisis_Combustible>.xlsx"]` revisa `logica.js` con archivos reales.
+- `prueba.js` (solo local, no se sube porque usa cifras reales): revisa `logica.js` con los Excel de TOKA y del análisis contable.
 - `xlsx.full.min.js`: SheetJS 0.20.3 (la misma copia del dashboard de RH).
 - `apps-script/Codigo.gs`: backend; vive en el editor de Apps Script y no se sube (instrucciones al inicio del archivo).

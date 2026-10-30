@@ -13,3 +13,6 @@
 *.zip
 entrega*/
 respaldos/
+
+# Prueba con cifras reales de la empresa (solo local)
+prueba.js
