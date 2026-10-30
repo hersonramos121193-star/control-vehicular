@@ -152,6 +152,11 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
 .login-card .logo-mmx{height:70px;background-size:auto 80%;margin-top:6px;}
 .login-card h1{font-size:13px;letter-spacing:.24em;text-align:center;color:var(--azul);}
 .login-error{color:var(--bad);font-size:13px;min-height:1em;}
+/* Conexión */
+.con-fila{display:flex;gap:14px;align-items:center;}
+.con-ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--bg,var(--gris-bg));color:var(--c,var(--muted));font-weight:700;}
+.con-ico .ico{width:24px;height:24px;}
+.con-pie{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
 [hidden]{display:none !important;}
 </style>
 </head>
@@ -173,6 +178,7 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
   <symbol id="i-tarjeta" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></symbol>
   <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   <symbol id="i-lapiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></symbol>
+  <symbol id="i-nube" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5 4.5 4.5 0 0 1 17.5 18z"/></symbol>
   <symbol id="i-salir" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
 </svg>
 
@@ -208,6 +214,7 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
     <a href="#por-asignar"><svg class="ico"><use href="#i-mano"/></svg>Por asignar<span class="badge" id="badge-asignar"></span></a>
     <a href="#casetas"><svg class="ico"><use href="#i-caseta"/></svg>Casetas</a>
     <a href="#prorrateo"><svg class="ico"><use href="#i-pastel"/></svg>Prorrateo</a>
+    <a href="#conexion"><svg class="ico"><use href="#i-nube"/></svg>Conexión</a>
   </nav>
   <div class="pie"><span id="usuario-nombre"></span><br><a href="#" id="salir" style="color:#fff">Cerrar sesión</a></div>
 </aside>
@@ -313,6 +320,27 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
     </div>
   </section>
 
+  <!-- CONEXIÓN -->
+  <section id="conexion" data-sub="Estado de la app y de tu acceso" hidden>
+    <div class="rejilla">
+      <div class="card">
+        <div class="con-fila"><span class="con-ico" id="con-ico"><svg class="ico"><use href="#i-nube"/></svg></span>
+          <div><h2 id="con-titulo">Conectando…</h2><p class="nota" id="con-detalle" style="margin:2px 0 0">—</p></div></div>
+        <div class="con-pie">
+          <div><p class="nota" style="margin:0">Versión en este dispositivo</p><b id="con-version"></b></div>
+          <button class="btn" id="con-forzar">Forzar actualización</button>
+        </div>
+        <p class="nota" style="margin:10px 0 0">Si se publicaron cambios y no los ves, o un botón no responde, presiona Forzar actualización: vuelve a descargar la versión más reciente sin cerrar tu sesión.</p>
+      </div>
+      <div class="card">
+        <div class="con-fila"><span class="con-ico" id="ses-ini" style="--c:var(--azul);--bg:var(--azul-bg)">—</span>
+          <div><h2 id="ses-nombre">—</h2><p class="nota" id="ses-detalle" style="margin:2px 0 0">—</p></div></div>
+        <p class="nota" style="margin:14px 0 4px">Datos en tu Google Sheet</p>
+        <div class="resumen" id="con-datos"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- PRORRATEO -->
   <section id="prorrateo" data-sub="Reparto del gasto por centro de costo" hidden>
     <div class="card">
@@ -336,8 +364,10 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
 <div class="toast" id="toast" hidden></div>
 
 <script src="xlsx.full.min.js"></script>
-<script src="logica.js"></script>
+<!-- Al cambiar logica.js, subir APP_VERSION y este ?v= para que el navegador no use una copia vieja. -->
+<script src="logica.js?v=2026-10-30.2"></script>
 <script>
+const APP_VERSION = '2026-10-30.2';
 // Dirección /exec del Apps Script (ver apps-script/Codigo.gs). Vacía = sin configurar.
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZSBgQnEmJPc4MXUrqifNVzJUxtD2wB7eNol3XD3wxU1XwgrMsL_4gLIaxYyqdj_Hm/exec';
 const CLAVE_SESION = 'cv_sesion';
@@ -354,21 +384,34 @@ const nombreCentro = z => z ? (C[z] ? C[z].nombre : 'Zona ' + z) : 'Sin asignar'
 const ultimos4 = t => '••' + String(t).slice(-4);
 const vacio = (txt, ico = 'i-grafica') => `<div class="vacio"><svg class="ico"><use href="#${ico}"/></svg>${esc(txt)}</div>`;
 
-function aviso(txt) {
+function aviso(txt, ms = 4500) {
   const t = $('toast');
   t.textContent = txt; t.hidden = false;
-  clearTimeout(aviso.t); aviso.t = setTimeout(() => t.hidden = true, 4500);
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => t.hidden = true, ms);
 }
+// Ningún botón falla en silencio: cualquier error de la página se muestra con la forma de resolverlo.
+const avisoError = m => aviso(`Algo falló en la página (${m}). Recarga con Ctrl+F5 o usa Conexión → Forzar actualización.`, 9000);
+addEventListener('error', e => avisoError(e.message));
+addEventListener('unhandledrejection', e => avisoError(e.reason && e.reason.message || e.reason));
 
 /* ---------- Conexión ---------- */
+let ESTADO = { ok: null, ms: 0, cuando: null, error: '' }; // última respuesta del Apps Script, para la sección Conexión
 async function api(payload) {
   if (!/^https:\/\/script\.google\.com\//.test(SCRIPT_URL)) throw new Error('Falta configurar la dirección del Apps Script (SCRIPT_URL) en index.html.');
-  const r = await fetch(SCRIPT_URL, {
-    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ ...payload, token: SESION ? SESION.token : '' })
-  });
-  if (!r.ok) throw new Error('No se pudo conectar (' + r.status + ').');
+  const t0 = performance.now();
+  let r;
+  try {
+    r = await fetch(SCRIPT_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ ...payload, token: SESION ? SESION.token : '' })
+    });
+  } catch (e) {
+    ESTADO = { ...ESTADO, ok: false, error: 'Sin respuesta de Google. Revisa tu conexión a internet.' };
+    throw new Error('No se pudo conectar. Revisa tu conexión a internet.');
+  }
+  if (!r.ok) { ESTADO = { ...ESTADO, ok: false, error: 'Google respondió con error ' + r.status + '.' }; throw new Error('No se pudo conectar (' + r.status + ').'); }
   const data = await r.json();
+  ESTADO = { ok: true, ms: performance.now() - t0, cuando: new Date(), error: '' };
   if (data.error === 'SESION_INVALIDA') { cerrarSesion('Tu sesión terminó. Vuelve a iniciar sesión.'); throw new Error('Sesión vencida'); }
   if (data.error) throw new Error(data.error);
   return data;
@@ -512,7 +555,7 @@ function render() {
   llenarFiltros();
   const pendientes = DATOS.cargas.filter(c => !c.unidad).length;
   $('badge-asignar').textContent = pendientes || '';
-  renderPanel(); renderAnalisis(); renderUnidades(); renderCombustible(); renderAsignar(); renderProrrateo();
+  renderPanel(); renderAnalisis(); renderUnidades(); renderCombustible(); renderAsignar(); renderProrrateo(); renderConexion();
 }
 
 /* ---------- Gráficas ---------- */
@@ -613,9 +656,10 @@ function renderUnidades() {
     '</tbody></table>' : vacio('Sin centros de costo', 'i-pastel');
 }
 
+// Devuelve true si se guardó; si no, ya mostró el motivo.
 async function guardarCatalogo(tabla, fila) {
-  try { await api({ action: 'guardar', tabla, fila }); aviso('Guardado.'); }
-  catch (e) { aviso(e.message); throw e; }
+  try { await api({ action: 'guardar', tabla, fila }); aviso('Guardado.'); return true; }
+  catch (e) { aviso(e.message); return false; }
 }
 
 async function editarUnidad(clave) {
@@ -631,7 +675,7 @@ async function editarUnidad(clave) {
   if (!v) return;
   v.noEconomico = v.noEconomico.toUpperCase();
   if (!clave && U[v.noEconomico]) return aviso('Ya existe la unidad ' + v.noEconomico + '.');
-  await guardarCatalogo('Unidades', v);
+  if (!await guardarCatalogo('Unidades', v)) return;
   cargarDatos();
 }
 
@@ -644,7 +688,7 @@ async function editarTarjeta(clave) {
   ], t);
   if (!v) return;
   if (v.comodin === 'SI') v.unidad = '';
-  await guardarCatalogo('Tarjetas', { tarjeta: clave, ...v });
+  if (!await guardarCatalogo('Tarjetas', { tarjeta: clave, ...v })) return;
   // Las cargas que esperaban unidad de esta tarjeta se acomodan solas.
   const u = U[v.unidad];
   const pend = u ? DATOS.cargas.filter(c => c.tarjeta === clave && !c.unidad) : [];
@@ -662,7 +706,7 @@ async function editarCentro(clave) {
     { k: 'presupuesto', etiqueta: 'Presupuesto mensual sin IVA (vacío = sin presupuesto)', tipo: 'number' }
   ], C[clave] || {});
   if (!v) return;
-  await guardarCatalogo('CentrosCosto', v);
+  if (!await guardarCatalogo('CentrosCosto', v)) return;
   cargarDatos();
 }
 
@@ -779,10 +823,7 @@ function renderProrrateo() {
 $('pr-guardar').addEventListener('click', async () => {
   const mes = $('f-mes').value;
   if (!mes) return aviso('Primero sube cargas de algún mes.');
-  try {
-    await guardarCatalogo('Prorrateo', { mes, neto: $('pr-neto').value, ieps: $('pr-ieps').value, comision: $('pr-comision').value });
-    cargarDatos();
-  } catch (e) {}
+  if (await guardarCatalogo('Prorrateo', { mes, neto: $('pr-neto').value, ieps: $('pr-ieps').value, comision: $('pr-comision').value })) cargarDatos();
 });
 
 $('pr-exportar').addEventListener('click', () => {
@@ -935,6 +976,35 @@ $('a-exportar').addEventListener('click', () => {
   XLSX.writeFile(wb, `analisis-combustible-${an.corte}.xlsx`);
 });
 
+/* ---------- Conexión ---------- */
+function renderConexion() {
+  const e = ESTADO, hora = d => d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  const [titulo, color, bg] = e.ok === true ? ['Conectado con Google Sheets', 'var(--teal)', 'var(--teal-bg)']
+    : e.ok === false ? ['Sin conexión', 'var(--bad)', 'var(--bad-bg)'] : ['Conectando…', 'var(--muted)', 'var(--gris-bg)'];
+  $('con-titulo').textContent = titulo;
+  $('con-ico').style.cssText = `--c:${color};--bg:${bg}`;
+  $('con-detalle').textContent = e.ok === false ? e.error
+    : e.cuando ? `Respondió en ${(e.ms / 1000).toFixed(1)} s · última respuesta ${hora(e.cuando)}` : 'Sin respuesta todavía';
+  $('con-version').textContent = APP_VERSION;
+  if (!SESION) return;
+  const min = Math.max(0, Math.round((SESION.expira - Date.now()) / 60000));
+  $('ses-ini').textContent = String(SESION.nombre || '?').split(/\s+/).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+  $('ses-nombre').textContent = SESION.nombre;
+  $('ses-detalle').textContent = `Rol: ${SESION.rol === 'edicion' ? 'edición' : 'solo lectura'} · la sesión vence en ${Math.floor(min / 60)} h ${min % 60} min`;
+  const fila = (t, v) => `<span>${t}</span><b>${v}</b>`;
+  $('con-datos').innerHTML = fila('Cargas de combustible', DATOS.cargas.length) + fila('Unidades', DATOS.unidades.length) +
+    fila('Tarjetas', DATOS.tarjetas.length) + fila('Centros de costo', DATOS.centros.length) +
+    fila('Meses de histórico contable', new Set(DATOS.historico.map(h => h.mes)).size);
+}
+
+// Vuelve a descargar la página y sus scripts saltándose la copia guardada del navegador; la sesión se conserva.
+$('con-forzar').addEventListener('click', async () => {
+  aviso('Actualizando la app, un momento…');
+  const urls = [location.href.split('#')[0], ...[...document.scripts].filter(s => s.src).map(s => s.src)];
+  await Promise.all(urls.map(u => fetch(u, { cache: 'reload' }).catch(() => {})));
+  location.reload();
+});
+
 /* ---------- Botones dentro de tablas ---------- */
 document.querySelector('main').addEventListener('click', ev => {
   const b = ev.target.closest('button[data-accion]');
@@ -951,7 +1021,7 @@ function mostrar() {
   $('titulo').firstChild.textContent = document.querySelector(`.menu a[href="#${actual.id}"]`).childNodes[1].textContent;
   $('subtitulo').textContent = actual.dataset.sub;
   // Las gráficas toman el ancho de su sección, que solo existe cuando está visible.
-  if (actual.id === 'panel') renderPanel(); else if (actual.id === 'analisis') renderAnalisis();
+  if (actual.id === 'panel') renderPanel(); else if (actual.id === 'analisis') renderAnalisis(); else if (actual.id === 'conexion') renderConexion();
 }
 addEventListener('resize', () => { clearTimeout(mostrar.t); mostrar.t = setTimeout(mostrar, 200); });
 addEventListener('hashchange', mostrar);
