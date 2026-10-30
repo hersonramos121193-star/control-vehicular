@@ -98,6 +98,10 @@ td.sin{padding:28px 8px;text-align:center;color:var(--muted);}
 .btn-mini{padding:4px 10px;font-size:12.5px;}
 .card-tit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
 .card-tit h2{margin-right:auto;}
+.leyenda{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:8px;}
+.leyenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+#a-kpis .kpi strong{font-size:20px;}
+.kpi > div:last-child{min-width:0;}
 td.n,th.n{text-align:right;}
 td:first-child,td.n{white-space:nowrap;}
 .ajustada{color:var(--bad);font-weight:700;cursor:help;}
@@ -106,8 +110,8 @@ td:first-child,td.n{white-space:nowrap;}
 .nota{font-size:12.5px;color:var(--muted);margin-bottom:10px;}
 .nota.alerta-txt{color:var(--bad);}
 .lectura .solo-edicion{display:none !important;}
-#diario{width:100%;height:auto;display:block;}
-#diario text{font-size:13px;fill:var(--muted);}
+.grafica{width:100%;height:auto;display:block;}
+.grafica text{font-size:13px;fill:var(--muted);}
 .barras{display:flex;flex-direction:column;gap:7px;}
 .fila{display:grid;grid-template-columns:130px minmax(0,1fr) 78px;gap:8px;align-items:center;font-size:12.5px;}
 .fila .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -198,6 +202,7 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
   <div class="franja"><i></i><i></i><i></i></div>
   <nav>
     <a href="#panel"><svg class="ico"><use href="#i-panel"/></svg>Panel</a>
+    <a href="#analisis"><svg class="ico"><use href="#i-grafica"/></svg>Análisis</a>
     <a href="#unidades"><svg class="ico"><use href="#i-auto"/></svg>Unidades</a>
     <a href="#combustible"><svg class="ico"><use href="#i-gas"/></svg>Combustible</a>
     <a href="#por-asignar"><svg class="ico"><use href="#i-mano"/></svg>Por asignar<span class="badge" id="badge-asignar"></span></a>
@@ -247,6 +252,21 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
       <div class="card"><h2>Top 10 unidades · combustible</h2><p class="sub">Ordenado por gasto del mes</p><div id="p-top"></div></div>
       <div class="card"><h2>Por centro de costo</h2><p class="sub">Combustible · base del prorrateo</p><div id="p-cc"></div></div>
     </div>
+  </section>
+
+  <!-- ANÁLISIS -->
+  <section id="analisis" data-sub="Tendencia, hallazgos y matriz por centro de costo · importes sin IVA" hidden>
+    <div class="card-tit">
+      <p class="nota" id="a-base" style="margin:0 auto 0 0"></p>
+      <button class="btn btn-sec btn-mini solo-edicion" id="a-config">Umbrales</button>
+      <button class="btn btn-sec btn-mini solo-edicion" id="a-historico"><svg class="ico"><use href="#i-subir"/></svg>Cargar histórico contable</button>
+      <button class="btn btn-mini" id="a-exportar"><svg class="ico"><use href="#i-bajar"/></svg>Exportar Excel</button>
+      <input type="file" id="archivo-hist" accept=".xlsx" hidden>
+    </div>
+    <div class="kpis" id="a-kpis"></div>
+    <div class="card"><h2>Gasto mensual: año actual contra el anterior</h2><p class="sub" id="a-graf-sub"></p><div id="a-graf"></div></div>
+    <div class="card mt"><h2>Hallazgos</h2><p class="sub">Calculados con los umbrales de configuración. El mes parcial (sin factura capturada) no entra en comparativos.</p><div class="tabla" id="a-hallazgos"></div></div>
+    <div class="card mt"><h2>Matriz mensual por centro de costo</h2><p class="sub">Últimos 12 meses cerrados y mes en curso (*). Color: veces su mediana mensual.</p><div class="tabla" id="a-matriz"></div></div>
   </section>
 
   <!-- UNIDADES -->
@@ -317,7 +337,7 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
 // Dirección /exec del Apps Script (ver apps-script/Codigo.gs). Vacía = sin configurar.
 const SCRIPT_URL = '';
 const CLAVE_SESION = 'cv_sesion';
-let SESION = null, DATOS = { unidades: [], tarjetas: [], centros: [], cargas: [], prorrateo: [] };
+let SESION = null, DATOS = { unidades: [], tarjetas: [], centros: [], cargas: [], prorrateo: [], historico: [], config: [] };
 let U = {}, T = {}, C = {}; // unidades, tarjetas y centros por su clave
 
 const $ = id => document.getElementById(id);
@@ -354,6 +374,7 @@ async function cargarDatos() {
   try {
     const d = await api({ action: 'datos' });
     d.cargas.forEach(c => { c.importe = Number(c.importe) || 0; c.importeToka = Number(c.importeToka) || 0; });
+    d.historico = d.historico || []; d.config = d.config || [];
     DATOS = d;
     U = Object.fromEntries(d.unidades.map(x => [x.noEconomico, x]));
     T = Object.fromEntries(d.tarjetas.map(x => [x.tarjeta, x]));
@@ -473,7 +494,7 @@ $('b-unidades').addEventListener('input', renderUnidades);
 
 function llenarFiltros() {
   const mes = $('f-mes').value, cc = $('f-centro').value;
-  const meses = [...new Set(DATOS.cargas.map(c => c.mes))].sort().reverse();
+  const meses = [...new Set([...DATOS.cargas.map(c => c.mes), ...DATOS.historico.map(h => h.mes)])].sort().reverse();
   $('f-mes').innerHTML = meses.length ? meses.map(m => `<option value="${m}">${esc(nombreMes(m))}</option>`).join('') : '<option value="">Sin datos</option>';
   // Sin mes elegido, se abre el de más cargas (el reporte trae días sueltos del mes anterior y siguiente).
   const cuenta = m => DATOS.cargas.filter(c => c.mes === m).length;
@@ -487,7 +508,7 @@ function render() {
   llenarFiltros();
   const pendientes = DATOS.cargas.filter(c => !c.unidad).length;
   $('badge-asignar').textContent = pendientes || '';
-  renderPanel(); renderUnidades(); renderCombustible(); renderAsignar(); renderProrrateo();
+  renderPanel(); renderAnalisis(); renderUnidades(); renderCombustible(); renderAsignar(); renderProrrateo();
 }
 
 /* ---------- Panel ---------- */
@@ -525,7 +546,7 @@ function renderPanel() {
     svg += `<rect x="${x}" y="${H - h}" width="${Math.max(bw - 4, 2)}" height="${h}" fill="var(--azul)" rx="2"><title>${d} ${MESES[+mes.slice(5, 7) - 1]} · ${pesos(v)}</title></rect>`;
     if (d === 1 || d % 5 === 0) svg += `<text x="${x + bw / 2 - 2}" y="${H + 16}" text-anchor="middle">${d}</text>`;
   }
-  $('p-diario').innerHTML = `<svg id="diario" viewBox="0 0 ${W} 220" role="img" aria-label="Gasto diario de combustible">${svg}</svg>`;
+  $('p-diario').innerHTML = `<svg class="grafica" viewBox="0 0 ${W} 220" role="img" aria-label="Gasto diario de combustible">${svg}</svg>`;
 
   const tarjetaAl = (n, c, bg, ico, t, d, href) => `<a class="alerta" href="${href}" style="--c:${c};--bg:${bg}"><svg class="ico"><use href="#${ico}"/></svg><div><b>${t}</b>${d}</div><strong>${n}</strong></a>`;
   $('p-alertas').innerHTML =
@@ -568,8 +589,8 @@ function renderUnidades() {
     DATOS.tarjetas.map(t => `<tr><td>${esc(t.tarjeta)}</td><td>${esc(t.nombreToka)}</td><td>${t.unidad ? placa(t.unidad) : (t.comodin === 'SI' ? '—' : '<span class="chip">Sin asignar</span>')}</td><td>${t.comodin === 'SI' ? '<span class="chip si">Sí</span>' : 'No'}</td><td>${btnEditar('tarjeta', t.tarjeta)}</td></tr>`).join('') +
     '</tbody></table>' : vacio('Se agregan al subir el primer Excel de TOKA', 'i-tarjeta');
 
-  $('t-centros').innerHTML = DATOS.centros.length ? `<table><thead><tr><th>Zona</th><th>Nombre</th><th></th></tr></thead><tbody>` +
-    DATOS.centros.map(c => `<tr><td>${esc(c.zona)}</td><td>${esc(c.nombre)}</td><td>${btnEditar('centro', c.zona)}</td></tr>`).join('') +
+  $('t-centros').innerHTML = DATOS.centros.length ? `<table><thead><tr><th>Zona</th><th>Nombre</th><th class="n">Presupuesto mensual sin IVA</th><th></th></tr></thead><tbody>` +
+    [...DATOS.centros].sort((a, b) => a.zona - b.zona).map(c => `<tr><td>${esc(c.zona)}</td><td>${esc(c.nombre)}</td><td class="n">${Number(c.presupuesto) ? pesos0(c.presupuesto) : '—'}</td><td>${btnEditar('centro', c.zona)}</td></tr>`).join('') +
     '</tbody></table>' : vacio('Sin centros de costo', 'i-pastel');
 }
 
@@ -618,7 +639,8 @@ async function editarTarjeta(clave) {
 async function editarCentro(clave) {
   const v = await formulario(clave ? 'Editar centro de costo' : 'Agregar centro de costo', [
     { k: 'zona', etiqueta: 'Zona (número en TOKA)', requerido: true, soloLectura: !!clave },
-    { k: 'nombre', etiqueta: 'Nombre', requerido: true }
+    { k: 'nombre', etiqueta: 'Nombre', requerido: true },
+    { k: 'presupuesto', etiqueta: 'Presupuesto mensual sin IVA (vacío = sin presupuesto)', tipo: 'number' }
   ], C[clave] || {});
   if (!v) return;
   await guardarCatalogo('CentrosCosto', v);
@@ -713,6 +735,146 @@ $('pr-exportar').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'Prorrateo ' + mes);
   XLSX.writeFile(wb, `prorrateo-combustible-${mes}.xlsx`);
+});
+
+/* ---------- Análisis (sin IVA) ---------- */
+const configActual = () => Object.fromEntries(DATOS.config.map(c => [c.clave, c.valor]));
+const miles = n => n ? (n / 1000).toFixed(1) + 'k' : '—';
+const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
+const COLOR_HALLAZGO = { 'Concentración': 'var(--bad)', 'Pico atípico': 'var(--bad)', 'Sobre presupuesto': 'var(--bad)', 'Crecimiento': 'var(--azul)', 'Centro nuevo': 'var(--azul)', 'Tarjeta nueva': 'var(--azul)', 'Tarjeta reactivada': 'var(--teal)', 'Cargo tras inactividad': 'var(--teal)' };
+
+function calcularAnalisis() {
+  const cc = $('f-centro').value, serie = serieMensual(DATOS.cargas, DATOS.historico, DATOS.prorrateo);
+  const an = analizar(serie, configActual(), cc, DATOS.centros, DATOS.prorrateo);
+  const tarjetas = hallazgosTarjetas(DATOS.cargas.filter(c => !cc || c.centroCosto === cc), an.cfg.mesesInactiva)
+    .map(t => ({ ...t, centro: 'Tarjeta ' + t.tarjeta, valor: 0, detalle: t.tipo === 'Tarjeta inactiva' ? 'Última carga en ' + nombreMes(t.mes) + '; ¿cancelar?' : 'Confirmar titular y autorización' }));
+  return { cc, serie, an, hallazgos: [...an.hallazgos, ...tarjetas] };
+}
+
+// Valor del mes para el centro elegido (o toda la empresa).
+const valorMes = (serie, m, cc) => { const v = serie.valores[m] || {}; return cc ? v[cc] || 0 : Object.values(v).reduce((s, x) => s + x, 0); };
+
+function mesesMatriz(serie, corte) {
+  const cerrados = serie.meses.filter(m => serie.origen[m] !== 'estimado' && m <= corte).slice(-12);
+  return [...cerrados, ...serie.meses.filter(m => m > corte)];
+}
+
+function renderAnalisis() {
+  const { cc, serie, an, hallazgos } = calcularAnalisis();
+  if (!an.corte) {
+    $('a-base').textContent = 'Carga el histórico contable o captura la factura de un mes en Prorrateo para empezar.';
+    ['a-kpis', 'a-graf', 'a-hallazgos', 'a-matriz'].forEach(id => $(id).innerHTML = id === 'a-kpis' ? '' : vacio('Sin meses cerrados todavía'));
+    $('a-graf-sub').textContent = '';
+    return;
+  }
+  const anio = +an.corte.slice(0, 4), mc = +an.corte.slice(5, 7), mesCorto = n => MESES[n - 1].slice(0, 3);
+  const origenes = [...new Set(serie.meses.map(m => serie.origen[m]))];
+  $('a-base').textContent = `Corte: ${nombreMes(an.corte)} (último mes cerrado). Base sin IVA` +
+    (origenes.includes('contable') ? ' · histórico contable' : '') + (origenes.includes('factura') ? ' · facturas capturadas' : '') +
+    (origenes.includes('estimado') ? ' · mes en curso estimado (importe ÷ 1.16)' : '') + (cc ? ' · ' + nombreCentro(cc) : ' · toda la empresa');
+
+  const kpi = (c, bg, ico, t, v, s) => `<div class="kpi" style="--c:${c};--bg:${bg}"><div class="circ"><svg class="ico"><use href="#${ico}"/></svg></div><div><p>${t}</p><strong>${v}</strong><span>${s}</span></div></div>`;
+  $('a-kpis').innerHTML =
+    kpi('var(--azul)', 'var(--azul-bg)', 'i-cartera', 'Acumulado ' + anio, pesos0(an.ytd), `Ene–${mesCorto(mc)} · ${anio - 1}: ${pesos0(an.ytdAnt)}`) +
+    kpi(an.varYtd > 0 ? 'var(--bad)' : 'var(--teal)', an.varYtd > 0 ? 'var(--bad-bg)' : 'var(--teal-bg)', 'i-grafica', 'Variación del año', pct(an.varYtd), `contra Ene–${mesCorto(mc)} ${anio - 1}`) +
+    kpi(an.varU3 > 0 ? 'var(--bad)' : 'var(--teal)', an.varU3 > 0 ? 'var(--bad-bg)' : 'var(--teal-bg)', 'i-reloj', 'Últimos 3 meses', pct(an.varU3), `${miles(an.u3)} contra ${miles(an.u3Ant)}`) +
+    kpi('var(--azul)', 'var(--azul-bg)', 'i-panel', 'Proyección cierre ' + anio, pesos0(an.proyeccion), 'al ritmo de los últimos 3 meses');
+
+  // Barras por mes: año anterior (gris) y actual (azul); el mes parcial va tenue.
+  const W = 620, H = 200, gw = W / 12, datos = [];
+  for (let n = 1; n <= 12; n++) {
+    const m = `${anio}-${String(n).padStart(2, '0')}`, ma = `${anio - 1}-${String(n).padStart(2, '0')}`;
+    datos.push({ n, act: valorMes(serie, m, cc), ant: valorMes(serie, ma, cc), parcial: serie.origen[m] === 'estimado' });
+  }
+  const max = Math.max(1, ...datos.flatMap(d => [d.act, d.ant])) * 1.1;
+  let svg = '';
+  [0.25, 0.5, 0.75, 1].forEach(f => { const y = H - f * (H - 10); svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#EEF1F4"/><text x="2" y="${y - 3}">${miles(max * f)}</text>`; });
+  datos.forEach(d => {
+    const x = (d.n - 1) * gw + 6, bw = (gw - 14) / 2, ha = d.ant / max * (H - 10), hb = d.act / max * (H - 10);
+    svg += `<rect x="${x}" y="${H - ha}" width="${bw}" height="${ha}" fill="var(--gris)" rx="2"><title>${mesCorto(d.n)} ${anio - 1}: ${pesos(d.ant)}</title></rect>`;
+    svg += `<rect x="${x + bw + 2}" y="${H - hb}" width="${bw}" height="${hb}" fill="var(--azul)" ${d.parcial ? 'opacity=".4"' : ''} rx="2"><title>${mesCorto(d.n)} ${anio}: ${pesos(d.act)}${d.parcial ? ' (parcial)' : ''}</title></rect>`;
+    svg += `<text x="${x + bw}" y="${H + 16}" text-anchor="middle">${mesCorto(d.n)}</text>`;
+  });
+  $('a-graf').innerHTML = `<div class="leyenda"><span><i style="background:var(--gris)"></i>${anio - 1}</span><span><i style="background:var(--azul)"></i>${anio}</span><span><i style="background:var(--azul);opacity:.4"></i>Mes parcial</span></div>` +
+    `<svg class="grafica" viewBox="0 0 ${W} 220" role="img" aria-label="Gasto mensual ${anio} contra ${anio - 1}">${svg}</svg>`;
+  $('a-graf-sub').textContent = cc ? nombreCentro(cc) : 'Toda la empresa';
+
+  const cifra = h => h.tipo === 'Comisión fuera de rango' ? (h.valor * 100).toFixed(2) + '%' : h.valor ? pesos0(h.valor) : '—';
+  $('a-hallazgos').innerHTML = hallazgos.length ? `<table><thead><tr><th>Hallazgo</th><th>Centro / tarjeta</th><th>Mes</th><th class="n">Cifra</th><th>Detalle</th></tr></thead><tbody>` +
+    hallazgos.map(h => `<tr><td><span class="chip" style="background:${COLOR_HALLAZGO[h.tipo] || 'var(--gris)'};color:#fff">${esc(h.tipo)}</span></td><td>${esc(h.centro)}</td><td>${esc(nombreMes(h.mes))}</td><td class="n">${cifra(h)}</td><td>${esc(h.detalle)}</td></tr>`).join('') +
+    '</tbody></table>' : vacio('Sin hallazgos con los umbrales actuales', 'i-alerta');
+
+  // Matriz: centros x meses, color según veces su mediana.
+  const ms = mesesMatriz(serie, an.corte), u = an.cfg.umbralPico;
+  const zonas = Object.keys(an.medianas).map(z => [z, ms.reduce((s, m) => s + ((serie.valores[m] || {})[z] || 0), 0)]).filter(([, t]) => t > 0).sort((a, b) => b[1] - a[1]);
+  const celda = (z, m) => {
+    const v = (serie.valores[m] || {})[z] || 0, r = an.medianas[z] ? v / an.medianas[z] : 0;
+    return `<td class="n" style="${r >= u ? 'background:var(--bad-bg);color:var(--bad);font-weight:700' : r >= 1.3 ? 'background:#FBF1DD' : ''}" title="${esc(nombreCentro(z))} · ${nombreMes(m)}: ${pesos(v)}${r ? ' · ' + r.toFixed(1) + ' veces su mediana' : ''}">${miles(v)}</td>`;
+  };
+  $('a-matriz').innerHTML = zonas.length ? `<table><thead><tr><th>Centro de costo</th>${ms.map(m => `<th class="n">${mesCorto(+m.slice(5, 7))}-${m.slice(2, 4)}${serie.origen[m] === 'estimado' ? '*' : ''}</th>`).join('')}<th class="n">Mediana</th></tr></thead><tbody>` +
+    zonas.map(([z]) => `<tr><td>${esc(nombreCentro(z))}</td>${ms.map(m => celda(z, m)).join('')}<td class="n">${miles(an.medianas[z])}</td></tr>`).join('') +
+    `<tr><td><b>Total</b></td>${ms.map(m => `<td class="n"><b>${miles(zonas.reduce((s, [z]) => s + ((serie.valores[m] || {})[z] || 0), 0))}</b></td>`).join('')}<td></td></tr></tbody></table>`
+    : vacio('Sin datos para la matriz', 'i-grafica');
+}
+
+// Carga única del histórico: hoja Base_Datos del análisis contable (solo Tarjeta TOKA, sin IVA).
+$('a-historico').addEventListener('click', () => $('archivo-hist').click());
+$('archivo-hist').addEventListener('change', async ev => {
+  const archivo = ev.target.files[0];
+  ev.target.value = '';
+  if (!archivo) return;
+  try {
+    const wb = XLSX.read(await archivo.arrayBuffer(), { cellDates: true });
+    if (!wb.Sheets.Base_Datos) return aviso('El archivo no tiene la hoja Base_Datos.');
+    const r = historicoDesdeContable(XLSX.utils.sheet_to_json(wb.Sheets.Base_Datos, { defval: '' }));
+    if (r.error) return aviso(r.error);
+    const fila = (t, v) => `<span>${t}</span><b>${v}</b>`;
+    const ok = await formulario('Cargar histórico contable', [], {},
+      `<p class="aviso-dlg">${esc(archivo.name)}<br>Solo partidas "Tarjeta TOKA", sin IVA. Los reembolsos no se cargan. Si un mes ya estaba, se reemplaza.</p><div class="resumen">` +
+      fila('Meses', `${nombreMes(r.meses[0])} a ${nombreMes(r.meses[r.meses.length - 1])}`) + fila('Centros de costo', r.centros.length) +
+      fila('Importe total', pesos(r.historico.reduce((s, h) => s + h.importe, 0))) + '</div>' +
+      '<p class="aviso-dlg">Los nombres de los centros se actualizan con los del auxiliar contable; su presupuesto se conserva.</p>', 'Cargar');
+    if (!ok) return;
+    await api({ action: 'guardarLote', tabla: 'CentrosCosto', filas: r.centros });
+    await api({ action: 'guardarLote', tabla: 'Historico', filas: r.historico });
+    aviso(`Histórico cargado: ${r.historico.length} renglones de ${r.meses.length} meses.`);
+    cargarDatos();
+  } catch (e) { aviso('No se pudo cargar el histórico: ' + e.message); }
+});
+
+$('a-config').addEventListener('click', async () => {
+  const actual = { ...CONFIG_INICIAL, ...configActual() };
+  const v = await formulario('Umbrales del análisis', [
+    { k: 'umbralPico', etiqueta: 'Pico: veces la mediana mensual del centro', tipo: 'number', requerido: true },
+    { k: 'picoMinimo', etiqueta: 'Pico: importe mínimo del mes', tipo: 'number', requerido: true },
+    { k: 'umbralYtd', etiqueta: 'Crecimiento: importe mínimo acumulado del año', tipo: 'number', requerido: true },
+    { k: 'umbralCrecimiento', etiqueta: 'Crecimiento: aumento mínimo (0.30 = 30%)', tipo: 'number', requerido: true },
+    { k: 'mesesInactiva', etiqueta: 'Meses sin consumo para considerar inactiva', tipo: 'number', requerido: true },
+    { k: 'presupuestoAviso', etiqueta: 'Avisar al llegar a esta fracción del presupuesto (1 = 100%)', tipo: 'number', requerido: true }
+  ], actual);
+  if (!v) return;
+  try {
+    await api({ action: 'guardarLote', tabla: 'Config', filas: Object.entries(v).map(([clave, valor]) => ({ clave, valor })) });
+    aviso('Umbrales guardados.');
+    cargarDatos();
+  } catch (e) { aviso(e.message); }
+});
+
+$('a-exportar').addEventListener('click', () => {
+  const { cc, serie, an, hallazgos } = calcularAnalisis();
+  if (!an.corte) return aviso('No hay meses cerrados para exportar.');
+  const r2 = n => Math.round(n * 100) / 100;
+  const wb = XLSX.utils.book_new(), hoja = (aoa, nombre) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), nombre);
+  hoja([['Análisis de combustible · sin IVA', cc ? nombreCentro(cc) : 'Toda la empresa'], ['Corte', nombreMes(an.corte)], [],
+    ['Indicador', 'Valor'], ['Acumulado del año', r2(an.ytd)], ['Mismo periodo año anterior', r2(an.ytdAnt)], ['Variación del año', an.varYtd],
+    ['Últimos 3 meses', r2(an.u3)], ['Mismos 3 meses año anterior', r2(an.u3Ant)], ['Variación últimos 3 meses', an.varU3],
+    ['Proyección de cierre', r2(an.proyeccion)], ['Gasto total del periodo', r2(an.totalPeriodo)]], 'Indicadores');
+  hoja([['Hallazgo', 'Centro / tarjeta', 'Mes', 'Cifra', 'Detalle'],
+    ...hallazgos.map(h => [h.tipo, h.centro, h.mes, h.tipo === 'Comisión fuera de rango' ? h.valor : r2(h.valor), h.detalle])], 'Hallazgos');
+  const zonas = Object.keys(an.medianas);
+  hoja([['Centro de costo', 'Zona', ...serie.meses.map(m => m + (serie.origen[m] === 'estimado' ? ' (parcial)' : ''))],
+    ...zonas.map(z => [nombreCentro(z), z, ...serie.meses.map(m => r2((serie.valores[m] || {})[z] || 0))])], 'Matriz mensual');
+  XLSX.writeFile(wb, `analisis-combustible-${an.corte}.xlsx`);
 });
 
 /* ---------- Botones dentro de tablas ---------- */
