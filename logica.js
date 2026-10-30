@@ -99,6 +99,34 @@ function alertas(cargas, tarjetasPorNum) {
   };
 }
 
+/* ---------- Catálogo desde Excel (unidades + tarjetas en un paso) ---------- */
+const COLUMNAS_CATALOGO = ['Tarjeta', 'Nombre en TOKA', 'No. económico', 'Placa', 'Tipo', 'Centro de costo (zona)', 'Responsable', 'Comodín (SI/NO)'];
+
+// filas: hoja del Excel de catálogo; centros: {zona: centro}. Devuelve lo que se guarda y los renglones rechazados.
+function catalogoDesdeExcel(filas, centros) {
+  if (!filas.length) return { error: 'El archivo no tiene renglones.' };
+  const faltan = COLUMNAS_CATALOGO.filter(c => !(c in filas[0]));
+  if (faltan.length) return { error: 'No es la plantilla del catálogo. Faltan columnas: ' + faltan.join(', ') };
+  const unidades = {}, tarjetas = [], errores = [];
+  filas.forEach((f, i) => {
+    const renglon = i + 2, txt = k => String(f[k] ?? '').trim();
+    const tarjeta = enmascararTarjeta(txt('Tarjeta'));
+    const nombre = txt('Nombre en TOKA') ? { nombreToka: txt('Nombre en TOKA') } : {};
+    const comodin = /^s[ií]$/i.test(txt('Comodín (SI/NO)')) ? 'SI' : 'NO';
+    const noEco = txt('No. económico').toUpperCase(), zona = txt('Centro de costo (zona)').replace(/\.0+$/, '');
+    if (!tarjeta) return errores.push(`Renglón ${renglon}: tarjeta "${txt('Tarjeta')}" no válida`);
+    if (comodin === 'SI') return tarjetas.push({ tarjeta, ...nombre, unidad: '', comodin });
+    if (!noEco) return errores.push(`Renglón ${renglon}: falta el No. económico (o marcar Comodín = SI)`);
+    if (!centros[zona]) return errores.push(`Renglón ${renglon}: el centro de costo "${zona}" no existe en el catálogo`);
+    if (unidades[noEco] && unidades[noEco].centroCosto !== zona) return errores.push(`Renglón ${renglon}: ${noEco} aparece con dos centros de costo distintos`);
+    // Solo se mandan los datos escritos, para no borrar lo que ya tenga la unidad.
+    const u = unidades[noEco] = unidades[noEco] || { noEconomico: noEco, centroCosto: zona };
+    for (const [col, k] of [['Placa', 'placa'], ['Tipo', 'tipo'], ['Responsable', 'responsable']]) if (txt(col)) u[k] = txt(col);
+    tarjetas.push({ tarjeta, ...nombre, unidad: noEco, comodin });
+  });
+  return { unidades: Object.values(unidades), tarjetas, errores };
+}
+
 /* ---------- Análisis histórico (base sin IVA, como contabilidad) ---------- */
 
 // Umbrales editables (hoja Config). Mismos valores que las celdas amarillas del análisis de Costos.
@@ -244,5 +272,5 @@ function hallazgosTarjetas(cargas, mesesInactiva) {
   return h;
 }
 
-if (typeof module !== 'undefined') module.exports = { COLUMNAS_TOKA, enmascararTarjeta, leerToka, asignarPorCatalogo, prorratear, alertas,
+if (typeof module !== 'undefined') module.exports = { COLUMNAS_TOKA, enmascararTarjeta, leerToka, asignarPorCatalogo, prorratear, alertas, COLUMNAS_CATALOGO, catalogoDesdeExcel,
   CONFIG_INICIAL, historicoDesdeContable, serieMensual, analizar, hallazgosTarjetas, mediana, mesMas };

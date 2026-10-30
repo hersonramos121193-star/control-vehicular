@@ -276,7 +276,11 @@ body.sin-sesion > aside, body.sin-sesion > main{display:none;}
       <div class="tabla" id="t-unidades"></div>
     </div>
     <div class="card mt">
-      <div class="card-tit"><h2>Tarjetas TOKA</h2></div>
+      <div class="card-tit"><h2>Tarjetas TOKA</h2>
+        <button class="btn btn-sec btn-mini" id="cat-plantilla"><svg class="ico"><use href="#i-bajar"/></svg>Descargar plantilla</button>
+        <button class="btn btn-mini solo-edicion" id="cat-cargar"><svg class="ico"><use href="#i-subir"/></svg>Cargar catálogo</button>
+        <input type="file" id="archivo-cat" accept=".xlsx" hidden>
+      </div>
       <p class="nota">Las tarjetas se agregan solas al subir el Excel. Asigna cada una a su unidad; si se usa para varias unidades, márcala como comodín y sus cargas se asignan una por una en "Por asignar".</p>
       <div class="tabla" id="t-tarjetas"></div>
     </div>
@@ -649,6 +653,46 @@ async function editarCentro(clave) {
 
 $('nueva-unidad').addEventListener('click', () => editarUnidad(''));
 $('nuevo-centro').addEventListener('click', () => editarCentro(''));
+
+// Plantilla = catálogo actual (tarjetas con su unidad y centro), para editarlo en Excel y volverlo a cargar.
+$('cat-plantilla').addEventListener('click', () => {
+  if (!DATOS.tarjetas.length) return aviso('Primero sube un Excel de TOKA para que aparezcan las tarjetas.');
+  const filas = DATOS.tarjetas.map(t => { const u = U[t.unidad] || {};
+    return [t.tarjeta, t.nombreToka, t.unidad, u.placa || '', u.tipo || '', u.centroCosto || '', u.responsable || '', t.comodin === 'SI' ? 'SI' : 'NO']; });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([COLUMNAS_CATALOGO, ...filas]), 'Catalogo');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Zona', 'Centro de costo'], ...DATOS.centros.map(c => [c.zona, c.nombre])]), 'Centros');
+  XLSX.writeFile(wb, 'catalogo-control-vehicular.xlsx');
+});
+
+$('cat-cargar').addEventListener('click', () => $('archivo-cat').click());
+$('archivo-cat').addEventListener('change', async ev => {
+  const archivo = ev.target.files[0];
+  ev.target.value = '';
+  if (!archivo) return;
+  try {
+    const wb = XLSX.read(await archivo.arrayBuffer());
+    const r = catalogoDesdeExcel(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' }), C);
+    if (r.error) return aviso(r.error);
+    // Cargas pendientes que quedan asignadas con este catálogo.
+    const fija = Object.fromEntries(r.tarjetas.filter(t => t.unidad).map(t => [t.tarjeta, r.unidades.find(u => u.noEconomico === t.unidad)]));
+    const pend = DATOS.cargas.filter(c => !c.unidad && fija[c.tarjeta]);
+    const fila = (t, v) => `<span>${t}</span><b>${v}</b>`;
+    const ok = await formulario('Cargar catálogo', [], {},
+      `<p class="aviso-dlg">${esc(archivo.name)}</p><div class="resumen">` +
+      fila('Unidades nuevas', r.unidades.filter(u => !U[u.noEconomico]).length) + fila('Unidades que se actualizan', r.unidades.filter(u => U[u.noEconomico]).length) +
+      fila('Tarjetas con unidad', r.tarjetas.filter(t => t.unidad).length) + fila('Tarjetas comodín', r.tarjetas.filter(t => t.comodin === 'SI').length) +
+      fila('Cargas que se asignan', pend.length) + fila('Renglones rechazados', r.errores.length) + '</div>' +
+      (r.errores.length ? `<p class="aviso-dlg" style="color:var(--bad)">${r.errores.slice(0, 8).map(esc).join('<br>')}${r.errores.length > 8 ? '<br>…' : ''}</p>` : ''),
+      'Guardar');
+    if (!ok) return;
+    if (r.unidades.length) await api({ action: 'guardarLote', tabla: 'Unidades', filas: r.unidades.map(u => U[u.noEconomico] ? u : { estatus: 'Activa', ...u }) });
+    if (r.tarjetas.length) await api({ action: 'guardarLote', tabla: 'Tarjetas', filas: r.tarjetas });
+    if (pend.length) await api({ action: 'actualizarCargas', cambios: pend.map(c => ({ id: c.id, campos: { unidad: fija[c.tarjeta].noEconomico, centroCosto: fija[c.tarjeta].centroCosto } })) });
+    aviso(`Catálogo guardado: ${r.unidades.length} unidades, ${r.tarjetas.length} tarjetas, ${pend.length} cargas asignadas.`);
+    cargarDatos();
+  } catch (e) { aviso('No se pudo cargar el catálogo: ' + e.message); }
+});
 
 /* ---------- Combustible ---------- */
 function renderCombustible() {
